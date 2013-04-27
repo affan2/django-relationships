@@ -9,7 +9,7 @@ from django.utils.http import urlquote
 from django.views.generic.list_detail import object_list
 from relationships.decorators import require_user
 from relationships.models import RelationshipStatus
-
+from actstream import actions
 
 @login_required
 def relationship_redirect(request):
@@ -84,8 +84,10 @@ def relationship_handler(request, user, status_slug, add=True,
     if request.method == 'POST':
         if add:
             request.user.relationships.add(user, status, is_symm)
+            actions.follow(request.user, user, actor_only=False)
         else:
             request.user.relationships.remove(user, status, is_symm)
+            actions.unfollow(request.user, user)
 
         if request.is_ajax():
             response = {'result': '1'}
