@@ -11,9 +11,9 @@
                             {{ friend }}
                         </a>
                         {% if friend.get_profile.profile_photo%}
-                            <img src='{{ friend.get_profile.profile_photo.url }}''>
+                            <img src='{{ friend.get_profile.profile_photo.url }}'>
                         {% elif friend.get_profile.image_url %}
-                            <img src='{{ friend.get_profile.image_url }}''>
+                            <img src='{{ friend.get_profile.image_url }}'>
                         {% else %}
                             <img src='{{ STATIC_URL }}img/defaultProfilePic.gif'>
                         {% endif %}
