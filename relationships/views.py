@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
@@ -101,3 +102,17 @@ def relationship_handler(request, user, status_slug, add=True,
     return render_to_response(template_name,
         {'to_user': user, 'status': status, 'add': add},
         context_instance=RequestContext(request))
+
+def get_followers(request, username):
+    user = User.objects.get(username=username)
+    
+    return render_to_response("relationships/friend_list_all.html", {
+        "friends": user.relationships.followers,
+    }, context_instance=RequestContext(request))
+
+def get_following(request, username):
+    user = User.objects.get(username=username)
+    
+    return render_to_response("relationships/friend_list_all.html", {
+        "friends": user.relationships.following,
+    }, context_instance=RequestContext(request))
