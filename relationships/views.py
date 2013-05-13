@@ -3,11 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils import simplejson as json
 from django.utils.http import urlquote
 from django.views.generic.list_detail import object_list
+from django.contrib.contenttypes.models import ContentType
+
 from relationships.decorators import require_user
 from relationships.models import RelationshipStatus
 from actstream import actions
@@ -103,15 +105,17 @@ def relationship_handler(request, user, status_slug, add=True,
         {'to_user': user, 'status': status, 'add': add},
         context_instance=RequestContext(request))
 
-def get_followers(request, username):
-    user = User.objects.get(username=username)
+def get_followers(request, content_type_id, object_id):
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    user = get_object_or_404(ctype.model_class(), pk=object_id)
     
     return render_to_response("relationships/friend_list_all.html", {
         "friends": user.relationships.followers,
     }, context_instance=RequestContext(request))
 
-def get_following(request, username):
-    user = User.objects.get(username=username)
+def get_following(request, content_type_id, object_id):
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    user = get_object_or_404(ctype.model_class(), pk=object_id)
     
     return render_to_response("relationships/friend_list_all.html", {
         "friends": user.relationships.following,

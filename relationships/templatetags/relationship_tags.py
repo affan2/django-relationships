@@ -1,10 +1,11 @@
 from django import template
 from django.core.urlresolvers import reverse
 from django.db.models.loading import get_model
-from django.template import TemplateSyntaxError
+from django.template import TemplateSyntaxError, Node, Variable
 from django.utils.functional import wraps
 from relationships.models import RelationshipStatus
 from relationships.utils import positive_filter, negative_filter
+from django.contrib.contenttypes.models import ContentType
 
 register = template.Library()
 
@@ -157,3 +158,36 @@ def followers_content(qs, user):
 @negative_filter_decorator
 def unblocked_content(qs, user):
     return negative_filter(qs, user.relationships.blocking())
+
+class FollowerList(Node):
+    def __init__(self, user):
+        self.user = Variable(user)
+
+    def render(self, context):
+        user_instance = self.user.resolve(context)
+        content_type = ContentType.objects.get_for_model(user_instance).pk
+        return reverse('get_followers', kwargs={'content_type_id': content_type, 'object_id': user_instance.pk })
+@register.tag
+def follower_info_url(parser, token):
+    bits = token.split_contents()
+    if len(bits) != 2:
+        raise TemplateSyntaxError("Accepted format {% follower_info_url [instance] %}")
+    else:
+        return FollowerList(bits[1])
+
+class FollowingList(Node):
+    def __init__(self, user):
+        self.user = Variable(user)
+
+    def render(self, context):
+        user_instance = self.user.resolve(context)
+        content_type = ContentType.objects.get_for_model(user_instance).pk
+        return reverse('get_following', kwargs={'content_type_id': content_type, 'object_id': user_instance.pk })
+        
+@register.tag
+def following_info_url(parser, token):
+    bits = token.split_contents()
+    if len(bits) != 2:
+        raise TemplateSyntaxError("Accepted format {% following_info_url [instance] %}")
+    else:
+        return FollowingList(bits[1])
