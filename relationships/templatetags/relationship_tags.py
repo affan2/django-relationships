@@ -191,3 +191,85 @@ def following_info_url(parser, token):
         raise TemplateSyntaxError("Accepted format {% following_info_url [instance] %}")
     else:
         return FollowingList(bits[1])
+
+class AsNode(template.Node):
+    """
+    Base template Node class for template tags that takes a predefined number
+    of arguments, ending in an optional 'as var' section.
+    """
+    args_count = 3
+
+    @classmethod
+    def handle_token(cls, parser, token):
+        """
+        Class method to parse and return a Node.
+        """
+        bits = token.split_contents()
+        args_count = len(bits) - 1
+        if args_count >= 2 and bits[-2] == 'as':
+            as_var = bits[-1]
+            args_count -= 2
+        else:
+            as_var = None
+        if args_count != cls.args_count:
+            arg_list = ' '.join(['[arg]' * cls.args_count])
+            raise template.TemplateSyntaxError("Accepted formats {%% %(tagname)s "
+                "%(args)s %%} or {%% %(tagname)s %(args)s as [var] %%}" %
+                {'tagname': bits[0], 'args': arg_list})
+        args = [parser.compile_filter(token) for token in
+            bits[1:args_count + 1]]
+        return cls(args, varname=as_var)
+
+    def __init__(self, args, varname=None):
+        self.args = args
+        self.varname = varname
+
+    def render(self, context):
+        result = self.render_result(context)
+        if self.varname is not None:
+            context[self.varname] = result
+            return ''
+        return result
+
+    def render_result(self, context):
+        raise NotImplementedError("Must be implemented by a subclass")
+
+class FollowingListSubset(AsNode):
+
+    def render_result(self, context):
+        obj_instance = self.args[0].resolve(context)
+        sIndex = self.args[1].resolve(context)
+        lIndex = self.args[2].resolve(context)
+        content_type = ContentType.objects.get_for_model(obj_instance).pk
+        
+        return reverse('get_following_subset', kwargs={
+            'content_type_id': content_type, 'object_id': obj_instance.pk, 'sIndex':sIndex, 'lIndex':lIndex})
+
+@register.tag
+def following_subset_url(parser, token):
+    bits = token.split_contents()
+    if len(bits) != 6:
+        raise template.TemplateSyntaxError("Accepted format "
+                                  "{% following_subset_url [actor_instance] %}")
+    else:
+        return FollowingListSubset.handle_token(parser, token)
+
+class FollowerListSubset(AsNode):
+
+    def render_result(self, context):
+        obj_instance = self.args[0].resolve(context)
+        sIndex = self.args[1].resolve(context)
+        lIndex = self.args[2].resolve(context)
+        content_type = ContentType.objects.get_for_model(obj_instance).pk
+        
+        return reverse('get_follower_subset', kwargs={
+            'content_type_id': content_type, 'object_id': obj_instance.pk, 'sIndex':sIndex, 'lIndex':lIndex})
+
+@register.tag
+def follower_subset_url(parser, token):
+    bits = token.split_contents()
+    if len(bits) != 6:
+        raise template.TemplateSyntaxError("Accepted format "
+                                  "{% follower_subset_url [actor_instance] %}")
+    else:
+        return FollowerListSubset.handle_token(parser, token)
