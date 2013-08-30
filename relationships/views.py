@@ -112,35 +112,51 @@ def relationship_handler(request, user, status_slug, add=True,
 def get_followers(request, content_type_id, object_id):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     user = get_object_or_404(ctype.model_class(), pk=object_id)
-    
-    return render_to_response("relationships/friend_list_all.html", {
-        "friends": user.relationships.followers,
-    }, context_instance=RequestContext(request))
+    if request.is_ajax():
+        return render_to_response("relationships/friend_list_all.html", {
+            "friends": user.relationships.followers,
+        }, context_instance=RequestContext(request))
+    else:
+        return render_to_response("relationships/render_friend_list_all.html", {
+            "friends": user.relationships.followers,
+        }, context_instance=RequestContext(request))        
 
 def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
-
-    return render_to_response("relationships/friend_list_all.html", {
-        "friends": user.relationships.followers()[s:l],
-    }, context_instance=RequestContext(request))
+    if request.is_ajax():
+        return render_to_response("relationships/friend_list_all.html", {
+            "friends": user.relationships.followers()[s:l],
+        }, context_instance=RequestContext(request))
+    else:
+        return render_to_response("relationships/render_friend_list_all.html", {
+            "friends": user.relationships.followers()[s:l],
+        }, context_instance=RequestContext(request))
 
 def get_following(request, content_type_id, object_id):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     user = get_object_or_404(ctype.model_class(), pk=object_id)
-    
-    return render_to_response("relationships/friend_list_all.html", {
-        "friends": user.relationships.following,
-    }, context_instance=RequestContext(request))
+    if request.is_ajax():
+        return render_to_response("relationships/friend_list_all.html", {
+            "friends": user.relationships.following,
+        }, context_instance=RequestContext(request))
+    else:
+        return render_to_response("relationships/render_friend_list_all.html", {
+            "friends": user.relationships.following,
+        }, context_instance=RequestContext(request))
 
 def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
-
-    return render_to_response("relationships/friend_list_all.html", {
-        "friends": user.relationships.following()[s:l],
-    }, context_instance=RequestContext(request))
+    if request.is_ajax():
+        return render_to_response("relationships/friend_list_all.html", {
+            "friends": user.relationships.following()[s:l],
+        }, context_instance=RequestContext(request))
+    else:
+        return render_to_response("relationships/render_friend_list_all.html", {
+            "friends": user.relationships.following()[s:l],
+        }, context_instance=RequestContext(request))        
