@@ -97,8 +97,7 @@ def relationship_handler(request, user, status_slug, add=True,
             Action.objects.all().filter(actor_content_type=ctype, actor_object_id=request.user.id, verb=u'started following', target_content_type=target_content_type, target_object_id = user.id ).delete()
 
         if request.is_ajax():
-            response = {'result': '1'}
-            return HttpResponse(json.dumps(response), mimetype="application/json")
+            return HttpResponse(json.dumps(dict(success=True)))
 
         if request.GET.get('next'):
             return HttpResponseRedirect(request.GET['next'])
