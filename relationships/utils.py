@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 
-from relationships.models import RelationshipStatus
+from .models import RelationshipStatus
 
 
 def relationship_exists(from_user, to_user, status_slug='following'):

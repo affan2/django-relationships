@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import url, patterns
 
 urlpatterns = patterns('relationships.views',
     url(r'^$', 'relationship_redirect', name='relationship_list_base'),

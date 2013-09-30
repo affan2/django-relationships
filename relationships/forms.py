@@ -1,6 +1,6 @@
 from django import forms
 from django.db.models import Q
-from relationships.models import RelationshipStatus
+from .models import RelationshipStatus
 
 
 class RelationshipStatusAdminForm(forms.ModelForm):

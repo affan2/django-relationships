@@ -1,3 +1,4 @@
+import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -5,15 +6,16 @@ from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.utils import simplejson as json
 from django.utils.http import urlquote
-from django.views.generic.list_detail import object_list
+from django.views.generic import ListView
 from django.contrib.contenttypes.models import ContentType
 
-from relationships.decorators import require_user
-from relationships.models import RelationshipStatus
+from .decorators import require_user
+from .models import RelationshipStatus
 from actstream import actions
 from actstream.models import Action
+from allauth.account.decorators import verified_email_required
+
 
 @login_required
 def relationship_redirect(request):
@@ -21,7 +23,7 @@ def relationship_redirect(request):
 
 
 def _relationship_list(request, queryset, template_name=None, *args, **kwargs):
-    return object_list(
+    return ListView(
         request=request,
         queryset=queryset,
         paginate_by=20,
@@ -76,7 +78,7 @@ def relationship_list(request, user, status_slug=None,
     return _relationship_list(request, qs, template_name, extra_context=ec)
 
 
-@login_required
+@verified_email_required
 @require_user
 def relationship_handler(request, user, status_slug, add=True,
                          template_name='relationships/confirm.html',
