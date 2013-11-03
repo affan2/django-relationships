@@ -9,11 +9,13 @@ from django.utils import simplejson as json
 from django.utils.http import urlquote
 from django.views.generic.list_detail import object_list
 from django.contrib.contenttypes.models import ContentType
+from django.template.loader import render_to_string
 
 from relationships.decorators import require_user
 from relationships.models import RelationshipStatus
 from actstream import actions
 from actstream.models import Action
+import json
 
 @login_required
 def relationship_redirect(request):
@@ -125,13 +127,41 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
-    if request.is_ajax():
+
+    if s == 0:
+        data_href = reverse('get_follower_subset', kwargs={ 'content_type_id':content_type_id,
+                                                            'object_id':object_id,
+                                                            'sIndex':0,
+                                                            'lIndex': settings.MIN_FOLLOWERS_CHUNK})
         return render_to_response("relationships/friend_list_all.html", {
             "friends": user.relationships.followers()[s:l],
+            'is_incremental': False,
+            'data_href':data_href
         }, context_instance=RequestContext(request))
+
+    sub_followers = user.relationships.followers()[s:l]
+
+    if request.is_ajax():
+        context = RequestContext(request)
+
+        context.update({'friends': sub_followers,
+                        'is_incremental': True})
+
+        template = 'relationships/friend_list_all.html'
+        if sub_followers:
+            ret_data = {
+                'html': render_to_string(template, context_instance=context).strip(),
+                'success': True
+            }
+        else:
+            ret_data = {
+                'success': False
+            }
+
+        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
     else:
         return render_to_response("relationships/render_friend_list_all.html", {
-            "friends": user.relationships.followers()[s:l],
+            "friends": sub_followers,
         }, context_instance=RequestContext(request))
 
 def get_following(request, content_type_id, object_id):
@@ -151,10 +181,39 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
-    if request.is_ajax():
+
+    if s == 0:
+        data_href = reverse('get_following_subset', kwargs={ 'content_type_id':content_type_id,
+                                                            'object_id':object_id,
+                                                            'sIndex':0,
+                                                            'lIndex': settings.MIN_FOLLOWERS_CHUNK})
+        
         return render_to_response("relationships/friend_list_all.html", {
             "friends": user.relationships.following()[s:l],
+            'is_incremental': False,
+            'data_href':data_href
         }, context_instance=RequestContext(request))
+
+    sub_following = user.relationships.following()[s:l]
+
+    if request.is_ajax():
+        context = RequestContext(request)
+
+        context.update({'friends': sub_following,
+                        'is_incremental': True})
+
+        template = 'relationships/friend_list_all.html'
+        if sub_following:
+            ret_data = {
+                'html': render_to_string(template, context_instance=context).strip(),
+                'success': True
+            }
+        else:
+            ret_data = {
+                'success': False
+            }
+
+        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
     else:
         return render_to_response("relationships/render_friend_list_all.html", {
             "friends": user.relationships.following()[s:l],
