@@ -301,7 +301,7 @@ class GetRelationshipType(Node):
 
         if user_social_auth.exists():
             friends = cache.get(user1_instance.username+"SocialFriendList")
-            if not friends:
+            if friends is None:
                 friends = SocialFriendList.objects.existing_social_friends(user_social_auth[0])
 
             if user2_instance in friends and relationship_exists(user1_instance, user2_instance, 'following'):
