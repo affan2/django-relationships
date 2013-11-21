@@ -303,6 +303,7 @@ class GetRelationshipType(Node):
             friends = cache.get(user1_instance.username+"SocialFriendList")
             if friends is None:
                 friends = SocialFriendList.objects.existing_social_friends(user_social_auth[0])
+                cache.set(ser1_instance.username+"SocialFriendList", friends)
 
             if user2_instance in friends and relationship_exists(user1_instance, user2_instance, 'following'):
                 context[self.context_var] = social_auth_backend
