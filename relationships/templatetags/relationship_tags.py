@@ -8,6 +8,7 @@ from relationships.utils import positive_filter, negative_filter, relationship_e
 from django.contrib.contenttypes.models import ContentType
 from social_friends_finder.models import SocialFriendList
 from django.core.cache import cache
+from django.template import loader, RequestContext
 
 register = template.Library()
 
@@ -333,3 +334,33 @@ def get_relationship_type(parser, token):
         raise template.TemplateSyntaxError("Third argument to '%s' tag must be 'as'" % bits[0])
     else:
         return GetRelationshipType(bits[1], bits[2], bits[4])
+
+@register.simple_tag(takes_context=True)
+def render_follower_subset(context, user_obj, sIndex, lIndex, data_chunk):
+    template_name = "relationships/friend_list_all.html"
+    template = loader.get_template(template_name)
+    content_type = ContentType.objects.get_for_model(user_obj).pk
+    data_href = reverse('get_follower_subset', kwargs={
+            'content_type_id': content_type, 'object_id': user_obj.pk, 'sIndex':sIndex, 'lIndex':lIndex})
+    return template.render(RequestContext(context['request'], {
+            "profile_user": user_obj,
+            "friends": user_obj.relationships.followers()[sIndex:lIndex],
+            'is_incremental': False,
+            'data_href': data_href,
+            'data_chunk': data_chunk
+        }))
+
+@register.simple_tag(takes_context=True)
+def render_following_subset(context, user_obj, sIndex, lIndex, data_chunk):
+    template_name = "relationships/friend_list_all.html"
+    template = loader.get_template(template_name)
+    content_type = ContentType.objects.get_for_model(user_obj).pk
+    data_href = reverse('get_following_subset', kwargs={
+            'content_type_id': content_type, 'object_id': user_obj.pk, 'sIndex':sIndex, 'lIndex':lIndex})
+    return template.render(RequestContext(context['request'], {
+            "profile_user": user_obj,
+            "friends": user_obj.relationships.following()[sIndex:lIndex],
+            'is_incremental': False,
+            'data_href':data_href,
+            'data_chunk': data_chunk
+        }))
