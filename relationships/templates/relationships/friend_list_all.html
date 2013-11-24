@@ -5,13 +5,13 @@
 <div class="scrollContainer" style="max-height:600px;overflow:auto;" data-href="{{data_href}}" data-chunk="{{data_chunk}}">
 {% endif %}
 {% for friend in friends %}
-    <div class="row vendorResult bottomHalfGutter">
+    <div class="row vendorResult bottomHalfGutter{% if forloop.first %} topHalfGutter{% endif %}">
         {% include 'generic/includes/render_owner.html' with owner=friend %}
         {% if friend != request.user %}
-            <div class="span1 noGutter topHalfGutter">
+            <div class="span1 noGutter">
                 {% include 'actstream/render_actor_name.html' with actor=friend %}  
             </div>
-            <div class="span1 halfGutter topHalfGutter">
+            <div class="span1 halfGutter">
                 <span id="vendorFollowContainer" class="makeYellowButton {% if_relationship request.user friend "following" %} following {% endif_relationship %}" >
                     <a href="javascript:void(0)" class="follow-btn icon-follow" data-href="{{ friend|add_relationship_url:"following" }}">{% trans "Follow" %}</a>
                     <a class="icon-following radioColor">{% trans "Follow" %}</a>
@@ -19,7 +19,7 @@
                 </span>
             </div>
         {% else %}
-            <div class="span2 noGutter topHalfGutter">
+            <div class="span2 noGutter">
                 {% include 'actstream/render_actor_name.html' with actor=friend %}  
             </div>
         {% endif %}
