@@ -2,7 +2,7 @@
 {% load relationship_tags follow_tags %}
 
 {% if not is_incremental %}
-<div class="scrollContainer" style="max-height:600px;overflow:auto;" data-href="{{data_href}}" data-chunk="{{data_chunk}}">
+<div class="scrollContainer topReviews_v" data-href="{{data_href}}" data-chunk="{{data_chunk}}">
 {% endif %}
 {% for friend in friends %}
     <div class="row vendorResult bottomHalfGutter{% if forloop.first %} topHalfGutter{% endif %}">
@@ -23,6 +23,12 @@
                 {% include 'actstream/render_actor_name.html' with actor=friend %}  
             </div>
         {% endif %}
+    </div>
+    {% empty %}
+    <div class="row vendorResult">
+        <div class="span2">
+            {% trans "No contacts to list" %}
+        </div>
     </div>
 {% endfor %}
 {% if not is_incremental %}
