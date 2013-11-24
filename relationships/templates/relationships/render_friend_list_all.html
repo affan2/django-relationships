@@ -28,6 +28,12 @@
                 </div>
             {% endif %}
         </div>
+        {% empty %}
+        <div class="row vendorResult">
+            <div class="span2">
+                {% trans "No contacts to list" %}
+            </div>
+        </div>
     {% endfor %}
     </div>
 </div>
