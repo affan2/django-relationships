@@ -115,6 +115,7 @@ def get_followers(request, content_type_id, object_id):
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     if request.is_ajax():
         return render_to_response("relationships/friend_list_all.html", {
+            "profile_user": user,
             "friends": user.relationships.followers,
         }, context_instance=RequestContext(request))
     else:
@@ -134,6 +135,7 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
                                                             'sIndex':0,
                                                             'lIndex': settings.MIN_FOLLOWERS_CHUNK})
         return render_to_response("relationships/friend_list_all.html", {
+            "profile_user": user,
             "friends": user.relationships.followers()[s:l],
             'is_incremental': False,
             'data_href':data_href
@@ -144,7 +146,8 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
     if request.is_ajax():
         context = RequestContext(request)
 
-        context.update({'friends': sub_followers,
+        context.update({"profile_user": user,
+                        'friends': sub_followers,
                         'is_incremental': True})
 
         template = 'relationships/friend_list_all.html'
@@ -169,6 +172,7 @@ def get_following(request, content_type_id, object_id):
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     if request.is_ajax():
         return render_to_response("relationships/friend_list_all.html", {
+            "profile_user": user,
             "friends": user.relationships.following,
         }, context_instance=RequestContext(request))
     else:
@@ -189,6 +193,7 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
                                                             'lIndex': settings.MIN_FOLLOWERS_CHUNK})
         
         return render_to_response("relationships/friend_list_all.html", {
+            "profile_user": user,
             "friends": user.relationships.following()[s:l],
             'is_incremental': False,
             'data_href':data_href
@@ -199,7 +204,8 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
     if request.is_ajax():
         context = RequestContext(request)
 
-        context.update({'friends': sub_following,
+        context.update({"profile_user": user,
+                        'friends': sub_following,
                         'is_incremental': True})
 
         template = 'relationships/friend_list_all.html'
