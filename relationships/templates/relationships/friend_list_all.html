@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n static %}
 {% load relationship_tags follow_tags %}
 
 {% if not is_incremental %}
@@ -15,7 +15,7 @@
                 <span id="vendorFollowContainer" class="makeYellowButton {% if_relationship request.user friend "following" %} following {% endif_relationship %}" >
                     <a href="javascript:void(0)" class="follow-btn icon-follow" data-href="{{ friend|add_relationship_url:"following" }}">{% trans "Follow" %}</a>
                     <a class="icon-following radioColor">{% trans "Follow" %}</a>
-                    <a href="javascript:void(0)" class="unfollow-btn icon-unfollow" data-href="{{ friend|remove_relationship_url:"following" }}"><img class="noBoxShadow" src="/static/img/1transparent.png"></a>
+                    <a href="javascript:void(0)" class="unfollow-btn icon-unfollow" data-href="{{ friend|remove_relationship_url:"following" }}"><img class="noBoxShadow" src="{% static 'img/1transparent.png' %}"></a>
                 </span>
             </div>
         {% else %}
