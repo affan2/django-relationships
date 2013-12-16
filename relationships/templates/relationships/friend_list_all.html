@@ -2,28 +2,35 @@
 {% load relationship_tags follow_tags %}
 
 {% if not is_incremental %}
-<div class="scrollContainer topReviews_v" data-href="{{data_href}}" data-chunk="{{data_chunk}}">
+<div class="scrollContainer topStores_v" data-href="{{data_href}}" data-chunk="{{data_chunk}}">
 {% endif %}
 {% for friend in friends %}
-    <div class="row vendorResult bottomHalfGutter{% if forloop.first %} topHalfGutter{% endif %}">
+    <div class="row vendorResult {% if not forloop.first %}top6Margin{% endif %}">
         {% include 'generic/includes/render_owner.html' with owner=friend %}
         {% if friend != request.user %}
-            <div class="span1 noGutter">
-                {% include 'actstream/render_actor_name.html' with actor=friend %}  
-            </div>
-            <div class="span1 halfGutter">
-                <span id="vendorFollowContainer" class="makeYellowButton {% if_relationship request.user friend "following" %} following {% endif_relationship %}" >
-                    <a href="javascript:void(0)" class="follow-btn icon-follow" data-href="{{ friend|add_relationship_url:"following" }}">{% trans "Follow" %}</a>
-                    <a class="icon-following radioColor">{% trans "Follow" %}</a>
-                    <a href="javascript:void(0)" class="unfollow-btn icon-unfollow" data-href="{{ friend|remove_relationship_url:"following" }}"><img class="noBoxShadow" src="{% static 'img/1transparent.png' %}"></a>
-                </span>
+            <div class="span2_5 span0_5Height noGutter">
+                <div class="row">
+                    <div class="span2_5" style="line-height:normal;">
+                        {% include 'relationships/render_name_for_list.html' with actor=friend %}  
+                    </div>
+                </div>
+                <div class="row topHalfGutter">
+                    <div class="span2_5 fontSize10" style="line-height:normal;">
+                        <span id="vendorFollowContainer" class="makeYellowButton {% if_relationship request.user friend "following" %} following {% endif_relationship %}" >
+                            <a href="javascript:void(0)" class="follow-btn icon-follow" data-href="{{ friend|add_relationship_url:"following" }}">{% trans "Follow" %}</a>
+                            <a class="icon-following radioColor">{% trans "Follow" %}</a>
+                            <a href="javascript:void(0)" class="unfollow-btn icon-unfollow" data-href="{{ friend|remove_relationship_url:"following" }}"><img class="noBoxShadow" src="{% static 'img/1transparent.png' %}"></a>
+                        </span>
+                    </div>
+                </div>
             </div>
         {% else %}
-            <div class="span2 noGutter">
-                {% include 'actstream/render_actor_name.html' with actor=friend %}  
+            <div class="span2_5 span0_5Height noGutter">
+                {% include 'relationships/render_name_for_list.html' with actor=friend %}  
             </div>
         {% endif %}
     </div>
+    <hr class="dottedSeparator">
     {% empty %}
     <div class="row vendorResult">
         <div class="span2">

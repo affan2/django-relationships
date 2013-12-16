@@ -1,0 +1,21 @@
+{% load activity_tags i18n %}
+{% load userProfile_tags %}
+
+{% if actor %}
+	{% if actor.get_absolute_url %}
+			{% if actor|get_class_name == "User" %}
+				{# render name in two lines #}
+				<a href="{{ actor.get_absolute_url }}" class="fontTitillium1 fontSize11 color5D">
+					<div class="row">
+						<div class="span2_5">{% get_full_name actor %}</div>
+					</div>
+				</a>
+			{% elif actor|get_class_name == "BlogPost" %}
+				<a href="{{ actor.get_absolute_url }}" class="fontHelvetica fontSize13 color5D">{{actor}}</a>
+			{% else %}
+				{{actor}}
+			{% endif %}
+	{% else %}
+		{{actor}}
+	{% endif %}
+{% endif %}
