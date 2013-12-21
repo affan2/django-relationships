@@ -16,7 +16,7 @@
                 </div>
                 <div class="row topHalfGutter">
                     <div class="span2_5 fontSize10" style="line-height:normal;">
-                        <span id="vendorFollowContainer" class="makeYellowButton {% if_relationship request.user friend "following" %} following {% endif_relationship %}" >
+                        <span class="vendorFollowContainer makeYellowButton {% if_relationship request.user friend "following" %} following {% endif_relationship %}" >
                             <a href="javascript:void(0)" class="follow-btn icon-follow" data-href="{{ friend|add_relationship_url:"following" }}">{% trans "Follow" %}</a>
                             <a class="icon-following radioColor">{% trans "Follow" %}</a>
                             <a href="javascript:void(0)" class="unfollow-btn icon-unfollow" data-href="{{ friend|remove_relationship_url:"following" }}"><img class="noBoxShadow" src="{% static 'img/1transparent.png' %}"></a>
