@@ -138,7 +138,8 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
             "profile_user": user,
             "friends": user.relationships.followers()[s:l],
             'is_incremental': False,
-            'data_href':data_href
+            'data_href':data_href,
+            'data_chunk':settings.MIN_FOLLOWERS_CHUNK
         }, context_instance=RequestContext(request))
 
     sub_followers = user.relationships.followers()[s:l]
