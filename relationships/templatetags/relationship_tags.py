@@ -346,7 +346,9 @@ def render_follower_subset(context, user_obj, sIndex, lIndex, data_chunk):
             "friends": user_obj.relationships.followers()[sIndex:lIndex],
             'is_incremental': False,
             'data_href': data_href,
-            'data_chunk': data_chunk
+            'data_chunk': data_chunk,
+            'profile_user': user_obj,
+            'followers': "true"
         }))
 
 @register.simple_tag(takes_context=True)
@@ -360,5 +362,7 @@ def render_following_subset(context, user_obj, sIndex, lIndex, data_chunk):
             "friends": user_obj.relationships.following()[sIndex:lIndex],
             'is_incremental': False,
             'data_href':data_href,
-            'data_chunk': data_chunk
+            'data_chunk': data_chunk,
+            'profile_user': user_obj,
+            'following': "true"
         }))

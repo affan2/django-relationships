@@ -1,5 +1,5 @@
 {% load i18n static %}
-{% load relationship_tags follow_tags %}
+{% load relationship_tags follow_tags userProfile_tags %}
 
 {% if not is_incremental %}
 <div class="scrollContainer topStores_v" data-href="{{data_href}}" data-chunk="{{data_chunk}}">
@@ -26,15 +26,40 @@
             </div>
         {% else %}
             <div class="span2_5 span0_5Height noGutter">
-                {% include 'relationships/render_name_for_list.html' with actor=friend %}  
+                {% include 'relationships/render_name_for_list.html' with actor=friend %}
             </div>
         {% endif %}
     </div>
     <hr class="dottedSeparator">
     {% empty %}
     <div class="row vendorResult">
-        <div class="span2 fontTitillium1 fontSize13">
-            {% trans "No contacts to list" %}
+        <div class="span2_5 fontTitillium1 fontSize13">
+            {% if profile_user %}
+                {% if profile_user != request.user %}
+                    {% if following == "true" %}
+                        {% get_full_name profile_user %}{% trans " is not following anyone yet." %}
+                    {% elif followers == "true"%}
+                        {% get_full_name profile_user %}{% trans " has no followers yet." %}
+                    {% endif %}
+                {% else %}
+                    {% if following == "true" %}
+                        {% trans "You could follow some of your favourite people and stores on Wishradio to know the latest wishes and deals they're posting and know what they're up to." %}
+                    {% elif followers == "true"%}
+                        <div class="row">
+                            <div class="span2_5">
+                                {% trans "No one's following you yet."%}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="span2_5">
+                                {% trans "And that's totally ok."%}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                {% trans "No Contacts to list." %}
+            {% endif %}
         </div>
     </div>
 {% endfor %}
