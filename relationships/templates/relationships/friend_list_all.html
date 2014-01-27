@@ -15,7 +15,7 @@
                     </div>
                 </div>
                 <div class="row topHalfGutter">
-                    <div class="span2_5 fontSize10" style="line-height:normal;">
+                    <div class="span2_5 fontSize12" style="line-height:normal;">
                         <span class="vendorFollowContainer makeYellowButton pagination-centered {% if_relationship request.user friend "following" %} following {% endif_relationship %}" >
                             <a href="javascript:void(0)" class="follow-btn icon-follow" data-href="{{ friend|add_relationship_url:"following" }}">{% trans "Follow" %}</a>
                             <a class="icon-following radioColor"><img class="noBoxShadow" src="{% static 'img/1transparent.png' %}">{% trans "Following" %}</a>
