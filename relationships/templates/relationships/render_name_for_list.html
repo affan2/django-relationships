@@ -5,7 +5,7 @@
 	{% if actor.get_absolute_url %}
 			{% if actor|get_class_name == "User" %}
 				{# render name in two lines #}
-				<a href="{{ actor.get_absolute_url }}" class="fontTitillium1 fontSize11 color5D">
+				<a href="{{ actor.get_absolute_url }}" class="fontTitillium1 fontSize13 color5D">
 					<div class="row">
 						<div class="span2_5">{% get_full_name actor %}</div>
 					</div>
