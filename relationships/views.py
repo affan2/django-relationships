@@ -101,8 +101,15 @@ def relationship_handler(request, user, status_slug, add=True,
         if request.is_ajax():
             return HttpResponse(json.dumps(dict(success=True)))
 
-        if request.GET.get('next'):
-            return HttpResponseRedirect(request.GET['next'])
+        try:
+            if request.GET.get('next'):
+                return HttpResponseRedirect(request.GET.get('next'))
+            if request.POST.get('next'):
+                return HttpResponseRedirect(request.POST.get('next'))
+            return HttpResponseRedirect(user.get_absolute_url())
+        except (AttributeError, TypeError):
+            if request.META.get('HTTP_REFERER'):
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
         template_name = success_template_name
 
