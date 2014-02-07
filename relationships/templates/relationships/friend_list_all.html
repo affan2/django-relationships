@@ -63,6 +63,11 @@
         </div>
     </div>
 {% endfor %}
+    <div class="row vendorResult loader" style="display:none;">
+        <div class="span3">
+            <img src="{% static 'img/loading.gif' %}">
+        </div>
+    </div>
 {% if not is_incremental %}
 </div>
 {% endif %}
