@@ -343,7 +343,7 @@ def render_follower_subset(context, user_obj, sIndex, lIndex, data_chunk):
     data_href = reverse('get_follower_subset', kwargs={
             'content_type_id': content_type, 'object_id': user_obj.pk, 'sIndex':sIndex, 'lIndex':lIndex})
     return template.render(RequestContext(context['request'], {
-            "friends": user_obj.relationships.followers()[sIndex:lIndex],
+            "friends": user_obj.relationships.followers().order_by('-date_joined')[sIndex:lIndex],
             'is_incremental': False,
             'data_href': data_href,
             'data_chunk': data_chunk,
@@ -359,7 +359,7 @@ def render_following_subset(context, user_obj, sIndex, lIndex, data_chunk):
     data_href = reverse('get_following_subset', kwargs={
             'content_type_id': content_type, 'object_id': user_obj.pk, 'sIndex':sIndex, 'lIndex':lIndex})
     return template.render(RequestContext(context['request'], {
-            "friends": user_obj.relationships.following()[sIndex:lIndex],
+            "friends": user_obj.relationships.following().order_by('-date_joined')[sIndex:lIndex],
             'is_incremental': False,
             'data_href':data_href,
             'data_chunk': data_chunk,
