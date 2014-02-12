@@ -136,13 +136,13 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
                                                             'lIndex': settings.MIN_FOLLOWERS_CHUNK})
         return render_to_response("relationships/friend_list_all.html", {
             "profile_user": user,
-            "friends": user.relationships.followers()[s:l],
+            "friends": user.relationships.followers().order_by('-date_joined')[s:l],
             'is_incremental': False,
             'data_href':data_href,
             'data_chunk':settings.MIN_FOLLOWERS_CHUNK
         }, context_instance=RequestContext(request))
 
-    sub_followers = user.relationships.followers()[s:l]
+    sub_followers = user.relationships.followers().order_by('-date_joined')[s:l]
 
     if request.is_ajax():
         context = RequestContext(request)
@@ -195,12 +195,12 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
         
         return render_to_response("relationships/friend_list_all.html", {
             "profile_user": user,
-            "friends": user.relationships.following()[s:l],
+            "friends": user.relationships.following().order_by('-date_joined')[s:l],
             'is_incremental': False,
             'data_href':data_href
         }, context_instance=RequestContext(request))
 
-    sub_following = user.relationships.following()[s:l]
+    sub_following = user.relationships.following().order_by('-date_joined')[s:l]
 
     if request.is_ajax():
         context = RequestContext(request)
