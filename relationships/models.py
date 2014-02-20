@@ -102,6 +102,14 @@ class RelationshipManager(User._default_manager.__class__):
             status=status,
             site=Site.objects.get_current()
         )
+        if created and status.verb == 'follow':
+            from people.tasks import task_got_follower_metric
+            from django.contrib.contenttypes.models import ContentType
+
+            content_type = ContentType.objects.get_for_model(self.instance)
+            task_got_follower_metric.delay(
+                user=user, content_type=content_type, object_id=self.instance.id
+            )
 
         if symmetrical:
             return (relationship, user.relationships.add(self.instance, status, False))
