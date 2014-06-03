@@ -90,13 +90,16 @@ def relationship_handler(request, user, status_slug, add=True,
     if request.method == 'POST':
         if add:
             request.user.relationships.add(user, status, is_symm)
-            actions.follow(request.user, user, actor_only=False)
+            from people.receivers import handle_action_save
+            from feedly.verbs.base import Follow as FollowVerb
+
+            handle_action_save(
+                request.user, verb=FollowVerb.id, target=user,
+                description=FollowVerb.past_tense
+            )
+
         else:
             request.user.relationships.remove(user, status, is_symm)
-            actions.unfollow(request.user, user)
-            ctype = ContentType.objects.get_for_model(request.user)
-            target_content_type = ContentType.objects.get_for_model(user)
-            Action.objects.all().filter(actor_content_type=ctype, actor_object_id=request.user.id, verb=u'started following', target_content_type=target_content_type, target_object_id = user.id ).delete()
 
         if request.is_ajax():
             return HttpResponse(json.dumps(dict(success=True)))
