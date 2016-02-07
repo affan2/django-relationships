@@ -17,11 +17,11 @@
     </td>
     {% if friend != request.user %}
         <td>
-        <div class="follow-button-container action-follow-user {% if_relationship request.user friend "following" %}following{% endif_relationship %} style="position:relative;right:-50px;">
+        <div class="follow-button-container action-follow-user {% if_relationship request.user friend "following" %}{% trans "following" %}{% endif_relationship %} style="position:relative;right:-50px;">
 
-            <a  href="{{ friend|add_relationship_url:"following" }}" class="follow-btn form-button form-button-follow form-button-small form-button-default form-button-left-icon form-button-icon-follow">Follow</a>
-            <a class="form-button form-button-following form-button-small form-button-light-and-grey form-button-left-icon form-button-icon-following">Following</a>
-            <a  href="{{ friend|remove_relationship_url:"following" }}" class="unfollow-btn form-button form-button-unfollow form-button-small form-button-red form-button-left-icon form-button-icon-unfollow">Unfollow</a>
+            <a  href="{{ friend|add_relationship_url:"following" }}" class="follow-btn form-button form-button-follow form-button-small form-button-default form-button-left-icon form-button-icon-follow">{% trans "Follow" %}</a>
+            <a class="form-button form-button-following form-button-small form-button-light-and-grey form-button-left-icon form-button-icon-following">{% trans "Following" %}</a>
+            <a  href="{{ friend|remove_relationship_url:"following" }}" class="unfollow-btn form-button form-button-unfollow form-button-small form-button-red form-button-left-icon form-button-icon-unfollow">{% trans "Unfollow" %}</a>
         </div> 
         </td>
     {% endif %}
