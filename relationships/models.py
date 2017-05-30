@@ -213,22 +213,45 @@ class RelationshipManager(User._default_manager.__class__):
 
         return User.objects.filter(**query).exists()
 
-    # some defaults
     def following(self):
         from people.models import PeopleWhiteLabel, UserProfile
-        if settings.SITE_ID > 1:
-            white_label_people = PeopleWhiteLabel.objects.filter(site=settings.SITE_ID).values_list('id', flat=True)
-            people = UserProfile.objects.filter(white_label_site__in=white_label_people).values_list('user', flat=True)
-            return self.get_relationships(RelationshipStatus.objects.following()).filter(id__in=people)
-        return self.get_relationships(RelationshipStatus.objects.following())
+        white_label_people = PeopleWhiteLabel.objects.filter(
+            site_id=settings.SITE_ID
+        ).values_list(
+            'id',
+            flat=True
+        )
+
+        people = UserProfile.objects.filter(
+            white_label_site__in=white_label_people
+        ).values_list(
+            'user',
+            flat=True
+        )
+
+        return self.get_relationships(RelationshipStatus.objects.following()).filter(
+            id__in=people,
+        )
 
     def followers(self):
         from people.models import PeopleWhiteLabel, UserProfile
-        if settings.SITE_ID > 1:
-            white_label_people = PeopleWhiteLabel.objects.filter(site=settings.SITE_ID).values_list('id', flat=True)
-            people = UserProfile.objects.filter(white_label_site__in=white_label_people).values_list('user', flat=True)
-            return self.get_related_to(RelationshipStatus.objects.following()).filter(id__in=people)
-        return self.get_related_to(RelationshipStatus.objects.following())
+        white_label_people = PeopleWhiteLabel.objects.filter(
+            site_id=settings.SITE_ID
+        ).values_list(
+            'id',
+            flat=True
+        )
+
+        people = UserProfile.objects.filter(
+            white_label_site__in=white_label_people
+        ).values_list(
+            'user',
+            flat=True
+        )
+
+        return self.get_related_to(RelationshipStatus.objects.following()).filter(
+            id__in=people
+        )
 
     def blocking(self):
         return self.get_relationships(RelationshipStatus.objects.blocking())
@@ -239,10 +262,27 @@ class RelationshipManager(User._default_manager.__class__):
     def friends(self):
         from people.models import PeopleWhiteLabel, UserProfile
         if settings.SITE_ID > 1:
-            white_label_people = PeopleWhiteLabel.objects.filter(site=settings.SITE_ID).values_list('id', flat=True)
-            people = UserProfile.objects.filter(white_label_site__in=white_label_people).values_list('user', flat=True)
-            return self.get_relationships(RelationshipStatus.objects.following(), True).filter(id__in=people)
-        return self.get_relationships(RelationshipStatus.objects.following(), True)
+            white_label_people = PeopleWhiteLabel.objects.filter(
+                site_id=settings.SITE_ID
+            ).values_list(
+                'id',
+                flat=True
+            )
+
+            people = UserProfile.objects.filter(
+                white_label_site__in=white_label_people
+            ).values_list(
+                'user',
+                flat=True
+            )
+
+            return self.get_relationships(RelationshipStatus.objects.following(), True).filter(
+                id__in=people,
+                site_id=settings.SITE_ID
+            )
+        return self.get_relationships(RelationshipStatus.objects.following(), True).filter(
+            site_id=settings.SITE_ID
+        )
 
 
 if django.VERSION < (1, 2):
