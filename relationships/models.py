@@ -214,54 +214,8 @@ class RelationshipManager(User._default_manager.__class__):
         return User.objects.filter(**query).exists()
 
     def following(self):
-        from people.models import PeopleWhiteLabel, UserProfile
-        white_label_people = PeopleWhiteLabel.objects.filter(
-            site_id=settings.SITE_ID
-        ).values_list(
-            'id',
-            flat=True
-        )
-
-        people = UserProfile.objects.filter(
-            white_label_site__in=white_label_people
-        ).values_list(
-            'user',
-            flat=True
-        )
-
-        return self.get_relationships(RelationshipStatus.objects.following()).filter(
-            id__in=people,
-        )
-
-    def followers(self):
-        from people.models import PeopleWhiteLabel, UserProfile
-        white_label_people = PeopleWhiteLabel.objects.filter(
-            site_id=settings.SITE_ID
-        ).values_list(
-            'id',
-            flat=True
-        )
-
-        people = UserProfile.objects.filter(
-            white_label_site__in=white_label_people
-        ).values_list(
-            'user',
-            flat=True
-        )
-
-        return self.get_related_to(RelationshipStatus.objects.following()).filter(
-            id__in=people
-        )
-
-    def blocking(self):
-        return self.get_relationships(RelationshipStatus.objects.blocking())
-
-    def blockers(self):
-        return self.get_related_to(RelationshipStatus.objects.blocking())
-
-    def friends(self):
-        from people.models import PeopleWhiteLabel, UserProfile
         if settings.SITE_ID > 1:
+            from people.models import PeopleWhiteLabel, UserProfile
             white_label_people = PeopleWhiteLabel.objects.filter(
                 site_id=settings.SITE_ID
             ).values_list(
@@ -276,13 +230,65 @@ class RelationshipManager(User._default_manager.__class__):
                 flat=True
             )
 
-            return self.get_relationships(RelationshipStatus.objects.following(), True).filter(
+            return self.get_relationships(RelationshipStatus.objects.following()).filter(
                 id__in=people,
+            )
+        return self.get_relationships(RelationshipStatus.objects.following())
+
+    def followers(self):
+        if settings.SITE_ID > 1:
+            from people.models import PeopleWhiteLabel, UserProfile
+            white_label_people = PeopleWhiteLabel.objects.filter(
+                site_id=settings.SITE_ID
+            ).values_list(
+                'id',
+                flat=True
+            )
+
+            people = UserProfile.objects.filter(
+                white_label_site__in=white_label_people
+            ).values_list(
+                'user',
+                flat=True
+            )
+
+            return self.get_related_to(RelationshipStatus.objects.following()).filter(
+                id__in=people
+            )
+        return self.get_related_to(RelationshipStatus.objects.following())
+
+    def blocking(self):
+        return self.get_relationships(RelationshipStatus.objects.blocking())
+
+    def blockers(self):
+        return self.get_related_to(RelationshipStatus.objects.blocking())
+
+    def friends(self):
+        if settings.SITE_ID > 1:
+            from people.models import PeopleWhiteLabel, UserProfile
+            if settings.SITE_ID > 1:
+                white_label_people = PeopleWhiteLabel.objects.filter(
+                    site_id=settings.SITE_ID
+                ).values_list(
+                    'id',
+                    flat=True
+                )
+
+                people = UserProfile.objects.filter(
+                    white_label_site__in=white_label_people
+                ).values_list(
+                    'user',
+                    flat=True
+                )
+
+                return self.get_relationships(RelationshipStatus.objects.following(), True).filter(
+                    id__in=people,
+                    site_id=settings.SITE_ID
+                )
+            return self.get_relationships(RelationshipStatus.objects.following(), True).filter(
                 site_id=settings.SITE_ID
             )
-        return self.get_relationships(RelationshipStatus.objects.following(), True).filter(
-            site_id=settings.SITE_ID
-        )
+        return self.get_relationships(RelationshipStatus.objects.following(), True)
 
 
 if django.VERSION < (1, 2):
