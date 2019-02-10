@@ -160,7 +160,8 @@ class RelationshipManager(User._default_manager.__class__):
         if symmetrical:
             query.update(self._get_to_query(status))
 
-        return User.objects.filter(**query)
+        # WHY: gdpr compliance.
+        return User.objects.filter(**query).exclude(user_profile__is_private=True)
 
     def get_related_to(self, status):
         """
