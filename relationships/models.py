@@ -150,6 +150,8 @@ class RelationshipManager(User._default_manager.__class__):
             from_users__site__pk=settings.SITE_ID
         )
 
+    # WHAT: Gets the users that are followed by the current user. The followed ones that have private profiles are
+    # excluded from the query due to GDPR compliance.
     def get_relationships(self, status, symmetrical=False):
         """
         Returns a QuerySet of user objects with which the given user has
@@ -163,12 +165,13 @@ class RelationshipManager(User._default_manager.__class__):
         # WHY: gdpr compliance.
         return User.objects.filter(**query).exclude(user_profile__is_private=True)
 
+    # WHAT: Gets the followers of a user. Excludes followers with a private profile due to GDRP compliance.
     def get_related_to(self, status):
         """
         Returns a QuerySet of user objects which have created a relationship to
         the given user.
         """
-        return User.objects.filter(**self._get_to_query(status))
+        return User.objects.filter(**self._get_to_query(status)).exclude(user_profile__is_private=True)
 
     def only_to(self, status):
         """
