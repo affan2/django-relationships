@@ -1,15 +1,13 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import Template, Context
 from django.test import TestCase
 
 from relationships.forms import RelationshipStatusAdminForm
-from relationships.listeners import (attach_relationship_listener,
-    detach_relationship_listener)
+from relationships.listeners import (attach_relationship_listener, detach_relationship_listener)
 from relationships.models import Relationship, RelationshipStatus
-from relationships.utils import (relationship_exists, extract_user_field,
-    positive_filter, negative_filter)
+from relationships.utils import (relationship_exists, extract_user_field, positive_filter, negative_filter)
 from relationships.compat import User
 
 
@@ -639,10 +637,10 @@ class RelationshipStatusAdminFormTestCase(BaseRelationshipsTestCase):
 class RelationshipUtilsTestCase(BaseRelationshipsTestCase):
     def test_extract_user_field(self):
         # just test a known pass and known fail
-        from django.contrib.comments.models import Comment
+        from .models import SomeModel
         from django.contrib.sites.models import Site
 
-        self.assertEqual(extract_user_field(Comment), 'user')
+        self.assertEqual(extract_user_field(SomeModel), 'user')
         self.assertEqual(extract_user_field(Site), None)
 
     def test_positive_filter(self):

@@ -33,7 +33,7 @@ if not settings.configured:
             'django.contrib.sessions.middleware.SessionMiddleware',
             'django.contrib.auth.middleware.AuthenticationMiddleware',
         ),
-        ROOT_URLCONF='relationships.relationships_tests.urls',
+        ROOT_URLCONF='relationships.tests.urls',
         INSTALLED_APPS=[
             'django.contrib.admin',
             'django.contrib.auth',
@@ -41,7 +41,7 @@ if not settings.configured:
             'django.contrib.sessions',
             'django.contrib.sites',
             'relationships',
-            'relationships.relationships_tests',
+            'relationships.tests',
         ],
     )
 
@@ -50,7 +50,7 @@ from django.test.utils import get_runner
 
 def runtests(*test_args):
     if not test_args:
-        test_args = ['relationships_tests']
+        test_args = ['tests']
     parent = dirname(abspath(__file__))
     sys.path.insert(0, parent)
     TestRunner = get_runner(settings)

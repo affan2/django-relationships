@@ -1,12 +1,11 @@
 from django import template
-from django.core.urlresolvers import reverse
-from django.db.models.loading import get_model
+from django.urls import reverse
+from django.apps import apps
 from django.template import TemplateSyntaxError, Node, Variable
 from django.utils.functional import wraps
 from relationships.models import RelationshipStatus
 from relationships.utils import positive_filter, negative_filter, relationship_exists
 from django.contrib.contenttypes.models import ContentType
-from social_friends_finder.models import SocialFriendList
 from django.core.cache import cache
 from django.template import loader, RequestContext
 
@@ -112,8 +111,8 @@ def remove_relationship_url(user, status):
 
 def positive_filter_decorator(func):
     def inner(qs, user):
-        if isinstance(qs, basestring):
-            model = get_model(*qs.split('.'))
+        if isinstance(qs, str):
+            model = apps.get_model(*qs.split('.'))
             if not model:
                 return []
             qs = model._default_manager.all()
@@ -126,8 +125,8 @@ def positive_filter_decorator(func):
 
 def negative_filter_decorator(func):
     def inner(qs, user):
-        if isinstance(qs, basestring):
-            model = get_model(*qs.split('.'))
+        if isinstance(qs, str):
+            model = apps.get_model(*qs.split('.'))
             if not model:
                 return []
             qs = model._default_manager.all()
@@ -161,6 +160,7 @@ def followers_content(qs, user):
 def unblocked_content(qs, user):
     return negative_filter(qs, user.relationships.blocking())
 
+
 class FollowerList(Node):
     def __init__(self, user):
         self.user = Variable(user)
@@ -169,6 +169,8 @@ class FollowerList(Node):
         user_instance = self.user.resolve(context)
         content_type = ContentType.objects.get_for_model(user_instance).pk
         return reverse('get_followers', kwargs={'content_type_id': content_type, 'object_id': user_instance.pk })
+
+
 @register.tag
 def follower_info_url(parser, token):
     bits = token.split_contents()
@@ -176,6 +178,7 @@ def follower_info_url(parser, token):
         raise TemplateSyntaxError("Accepted format {% follower_info_url [instance] %}")
     else:
         return FollowerList(bits[1])
+
 
 class FollowingList(Node):
     def __init__(self, user):
@@ -185,7 +188,8 @@ class FollowingList(Node):
         user_instance = self.user.resolve(context)
         content_type = ContentType.objects.get_for_model(user_instance).pk
         return reverse('get_following', kwargs={'content_type_id': content_type, 'object_id': user_instance.pk })
-        
+
+
 @register.tag
 def following_info_url(parser, token):
     bits = token.split_contents()
@@ -193,6 +197,7 @@ def following_info_url(parser, token):
         raise TemplateSyntaxError("Accepted format {% following_info_url [instance] %}")
     else:
         return FollowingList(bits[1])
+
 
 class AsNode(template.Node):
     """
@@ -236,8 +241,8 @@ class AsNode(template.Node):
     def render_result(self, context):
         raise NotImplementedError("Must be implemented by a subclass")
 
-class FollowingListSubset(AsNode):
 
+class FollowingListSubset(AsNode):
     def render_result(self, context):
         obj_instance = self.args[0].resolve(context)
         sIndex = self.args[1].resolve(context)
@@ -246,6 +251,7 @@ class FollowingListSubset(AsNode):
         
         return reverse('get_following_subset', kwargs={
             'content_type_id': content_type, 'object_id': obj_instance.pk, 'sIndex':sIndex, 'lIndex':lIndex})
+
 
 @register.tag
 def following_subset_url(parser, token):
@@ -256,8 +262,8 @@ def following_subset_url(parser, token):
     else:
         return FollowingListSubset.handle_token(parser, token)
 
-class FollowerListSubset(AsNode):
 
+class FollowerListSubset(AsNode):
     def render_result(self, context):
         obj_instance = self.args[0].resolve(context)
         sIndex = self.args[1].resolve(context)
@@ -267,6 +273,7 @@ class FollowerListSubset(AsNode):
         return reverse('get_follower_subset', kwargs={
             'content_type_id': content_type, 'object_id': obj_instance.pk, 'sIndex':sIndex, 'lIndex':lIndex})
 
+
 @register.tag
 def follower_subset_url(parser, token):
     bits = token.split_contents()
@@ -275,52 +282,6 @@ def follower_subset_url(parser, token):
                                   "{% follower_subset_url [actor_instance] %}")
     else:
         return FollowerListSubset.handle_token(parser, token)
-
-class GetRelationshipType(Node):
-    def __init__(self, user1, user2, context_var):
-        self.user1 = user1
-        self.user2 = user2
-        self.context_var = context_var
-
-    def render(self, context):
-        user1_instance = template.resolve_variable(self.user1, context)
-        user2_instance = template.resolve_variable(self.user2, context)
-        if user2_instance == user1_instance:
-            context[self.context_var] = 'self'
-            return ''
-
-        social_auth_backend = None
-
-        user_social_auth = user1_instance.social_auth.filter(provider="facebook")
-        if user_social_auth.exists():
-            social_auth_backend = "facebook"
-        else:
-            user_social_auth = user1_instance.social_auth.filter(provider="twitter")
-            if user_social_auth.exists():
-                social_auth_backend = "twitter"
-
-        if user_social_auth.exists():
-            friends = cache.get(user1_instance.username+"SocialFriendList")
-            if friends is None:
-                friends = SocialFriendList.objects.existing_social_friends(user_social_auth[0])
-                cache.set(user1_instance.username+"SocialFriendList", friends)
-
-            if user2_instance in friends and relationship_exists(user1_instance, user2_instance, 'following'):
-                context[self.context_var] = social_auth_backend
-                return ''
-
-        if relationship_exists(user1_instance, user2_instance, 'following'):
-            context[self.context_var] = 'level1'
-            return ''
-        else:
-            friends = user1_instance.relationships.following()
-            for friend in friends:
-                if user2_instance in friend.relationships.following() and user2_instance != user1_instance:
-                    context[self.context_var] = 'level2'
-                    return ''
-
-        context[self.context_var] = ''
-        return ''        
         
 
 @register.tag
@@ -331,8 +292,7 @@ def get_relationship_type(parser, token):
                                   "{% get_relationship_type [user_instance] [user_instance] as rel_type %}")
     elif bits[3] != 'as':
         raise template.TemplateSyntaxError("Third argument to '%s' tag must be 'as'" % bits[0])
-    else:
-        return GetRelationshipType(bits[1], bits[2], bits[4])
+
 
 @register.simple_tag(takes_context=True)
 def render_follower_subset(context, user_obj, sIndex, lIndex, data_chunk):
@@ -349,6 +309,7 @@ def render_follower_subset(context, user_obj, sIndex, lIndex, data_chunk):
             'profile_user': user_obj,
             'followers': "true"
         }))
+
 
 @register.simple_tag(takes_context=True)
 def render_following_subset(context, user_obj, sIndex, lIndex, data_chunk):

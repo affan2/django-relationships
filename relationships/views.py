@@ -1,21 +1,21 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.utils import simplejson as json
 from django.utils.http import urlquote
-from django.views.generic.list_detail import object_list
+from django.views.generic import ListView
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 
 from relationships.decorators import require_user
 from relationships.models import RelationshipStatus
-from actstream import actions
-from actstream.models import Action
+#from actstream import actions
+#from actstream.models import Action
 import json
+
 
 @login_required
 def relationship_redirect(request):
@@ -23,7 +23,7 @@ def relationship_redirect(request):
 
 
 def _relationship_list(request, queryset, template_name=None, *args, **kwargs):
-    return object_list(
+    return ListView(
         request=request,
         queryset=queryset,
         paginate_by=20,
@@ -110,6 +110,7 @@ def relationship_handler(request, user, status_slug, add=True,
         {'to_user': user, 'status': status, 'add': add},
         context_instance=RequestContext(request))
 
+
 def get_followers(request, content_type_id, object_id):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     user = get_object_or_404(ctype.model_class(), pk=object_id)
@@ -122,6 +123,7 @@ def get_followers(request, content_type_id, object_id):
         return render_to_response("relationships/render_friend_list_all.html", {
             "friends": user.relationships.followers,
         }, context_instance=RequestContext(request))        
+
 
 def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
@@ -168,6 +170,7 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
             "friends": sub_followers,
         }, context_instance=RequestContext(request))
 
+
 def get_following(request, content_type_id, object_id):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     user = get_object_or_404(ctype.model_class(), pk=object_id)
@@ -180,6 +183,7 @@ def get_following(request, content_type_id, object_id):
         return render_to_response("relationships/render_friend_list_all.html", {
             "friends": user.relationships.following,
         }, context_instance=RequestContext(request))
+
 
 def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
     ctype = get_object_or_404(ContentType, pk=content_type_id)

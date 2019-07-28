@@ -6,6 +6,7 @@ from .models import RelationshipStatus
 class RelationshipStatusAdminForm(forms.ModelForm):
     class Meta:
         model = RelationshipStatus
+        fields = ['name', 'verb', 'from_slug', 'to_slug', 'symmetrical_slug', 'login_required', 'private', ]
 
     def duplicate_slug_check(self, status_slug):
         status_qs = RelationshipStatus.objects.filter(
@@ -19,7 +20,7 @@ class RelationshipStatusAdminForm(forms.ModelForm):
 
         if status_qs.exists():
             raise forms.ValidationError('"%s" slug already in use on %s' % \
-                (status_slug, unicode(status_qs[0])))
+                (status_slug, str(status_qs[0])))
 
     def clean_from_slug(self):
         self.duplicate_slug_check(self.cleaned_data['from_slug'])
