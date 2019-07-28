@@ -1,4 +1,3 @@
-import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -6,16 +5,17 @@ from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
+from django.utils import simplejson as json
 from django.utils.http import urlquote
-from django.views.generic import ListView
+from django.views.generic.list_detail import object_list
 from django.contrib.contenttypes.models import ContentType
+from django.template.loader import render_to_string
 
-from .decorators import require_user
-from .models import RelationshipStatus
+from relationships.decorators import require_user
+from relationships.models import RelationshipStatus
 from actstream import actions
 from actstream.models import Action
-from allauth.account.decorators import verified_email_required
-
+import json
 
 @login_required
 def relationship_redirect(request):
@@ -23,7 +23,7 @@ def relationship_redirect(request):
 
 
 def _relationship_list(request, queryset, template_name=None, *args, **kwargs):
-    return ListView(
+    return object_list(
         request=request,
         queryset=queryset,
         paginate_by=20,
@@ -78,7 +78,7 @@ def relationship_list(request, user, status_slug=None,
     return _relationship_list(request, qs, template_name, extra_context=ec)
 
 
-@verified_email_required
+@login_required
 @require_user
 def relationship_handler(request, user, status_slug, add=True,
                          template_name='relationships/confirm.html',
@@ -99,17 +99,10 @@ def relationship_handler(request, user, status_slug, add=True,
             Action.objects.all().filter(actor_content_type=ctype, actor_object_id=request.user.id, verb=u'started following', target_content_type=target_content_type, target_object_id = user.id ).delete()
 
         if request.is_ajax():
-            return HttpResponse(json.dumps(dict(success=True)))
+            return HttpResponse(json.dumps(dict(success=True, count=user.relationships.followers().count())))
 
-        try:
-            if request.GET.get('next'):
-                return HttpResponseRedirect(request.GET.get('next'))
-            if request.POST.get('next'):
-                return HttpResponseRedirect(request.POST.get('next'))
-            return HttpResponseRedirect(user.get_absolute_url())
-        except (AttributeError, TypeError):
-            if request.META.get('HTTP_REFERER'):
-                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        if request.GET.get('next'):
+            return HttpResponseRedirect(request.GET['next'])
 
         template_name = success_template_name
 
@@ -122,6 +115,7 @@ def get_followers(request, content_type_id, object_id):
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     if request.is_ajax():
         return render_to_response("relationships/friend_list_all.html", {
+            "profile_user": user,
             "friends": user.relationships.followers,
         }, context_instance=RequestContext(request))
     else:
@@ -134,13 +128,44 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
-    if request.is_ajax():
+
+    if s == 0:
+        data_href = reverse('get_follower_subset', kwargs={ 'content_type_id':content_type_id,
+                                                            'object_id':object_id,
+                                                            'sIndex':0,
+                                                            'lIndex': settings.MIN_FOLLOWERS_CHUNK})
         return render_to_response("relationships/friend_list_all.html", {
-            "friends": user.relationships.followers()[s:l],
+            "profile_user": user,
+            "friends": user.relationships.followers().order_by('-date_joined')[s:l],
+            'is_incremental': False,
+            'data_href':data_href,
+            'data_chunk':settings.MIN_FOLLOWERS_CHUNK
         }, context_instance=RequestContext(request))
+
+    sub_followers = user.relationships.followers().order_by('-date_joined')[s:l]
+
+    if request.is_ajax():
+        context = RequestContext(request)
+
+        context.update({"profile_user": user,
+                        'friends': sub_followers,
+                        'is_incremental': True})
+
+        template = 'relationships/friend_list_all.html'
+        if sub_followers:
+            ret_data = {
+                'html': render_to_string(template, context_instance=context).strip(),
+                'success': True
+            }
+        else:
+            ret_data = {
+                'success': False
+            }
+
+        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
     else:
         return render_to_response("relationships/render_friend_list_all.html", {
-            "friends": user.relationships.followers()[s:l],
+            "friends": sub_followers,
         }, context_instance=RequestContext(request))
 
 def get_following(request, content_type_id, object_id):
@@ -148,6 +173,7 @@ def get_following(request, content_type_id, object_id):
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     if request.is_ajax():
         return render_to_response("relationships/friend_list_all.html", {
+            "profile_user": user,
             "friends": user.relationships.following,
         }, context_instance=RequestContext(request))
     else:
@@ -160,10 +186,41 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
-    if request.is_ajax():
+
+    if s == 0:
+        data_href = reverse('get_following_subset', kwargs={ 'content_type_id':content_type_id,
+                                                            'object_id':object_id,
+                                                            'sIndex':0,
+                                                            'lIndex': settings.MIN_FOLLOWERS_CHUNK})
+        
         return render_to_response("relationships/friend_list_all.html", {
-            "friends": user.relationships.following()[s:l],
+            "profile_user": user,
+            "friends": user.relationships.following().order_by('-date_joined')[s:l],
+            'is_incremental': False,
+            'data_href':data_href
         }, context_instance=RequestContext(request))
+
+    sub_following = user.relationships.following().order_by('-date_joined')[s:l]
+
+    if request.is_ajax():
+        context = RequestContext(request)
+
+        context.update({"profile_user": user,
+                        'friends': sub_following,
+                        'is_incremental': True})
+
+        template = 'relationships/friend_list_all.html'
+        if sub_following:
+            ret_data = {
+                'html': render_to_string(template, context_instance=context).strip(),
+                'success': True
+            }
+        else:
+            ret_data = {
+                'success': False
+            }
+
+        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
     else:
         return render_to_response("relationships/render_friend_list_all.html", {
             "friends": user.relationships.following()[s:l],
