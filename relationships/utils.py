@@ -1,5 +1,4 @@
-from django.contrib.auth.models import User
-
+from .compat import User
 from .models import RelationshipStatus
 
 
