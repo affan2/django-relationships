@@ -494,27 +494,32 @@ class RelationshipsTagsTestCase(BaseRelationshipsTestCase):
         self.assertEqual(rendered, url)
 
     def test_if_relationship_tag(self):
-        t = Template('{% load relationship_tags %}{% if_relationship john paul "following" %}y{% else %}n{% endif_relationship %}')
+        t = Template('{% load relationship_tags %}'
+                     '{% if_relationship john paul "following" %}y{% else %}n{% endif_relationship %}')
         c = Context({'john': self.john, 'paul': self.paul})
         rendered = t.render(c)
         self.assertEqual(rendered, 'y')
 
-        t = Template('{% load relationship_tags %}{% if_relationship paul john "following" %}y{% else %}n{% endif_relationship %}')
+        t = Template('{% load relationship_tags %}'
+                     '{% if_relationship paul john "following" %}y{% else %}n{% endif_relationship %}')
         c = Context({'john': self.john, 'paul': self.paul})
         rendered = t.render(c)
         self.assertEqual(rendered, 'n')
 
-        t = Template('{% load relationship_tags %}{% if_relationship paul john "followers" %}y{% else %}n{% endif_relationship %}')
+        t = Template('{% load relationship_tags %}'
+                     '{% if_relationship paul john "followers" %}y{% else %}n{% endif_relationship %}')
         c = Context({'john': self.john, 'paul': self.paul})
         rendered = t.render(c)
         self.assertEqual(rendered, 'y')
 
-        t = Template('{% load relationship_tags %}{% if_relationship paul john "friends" %}y{% else %}n{% endif_relationship %}')
+        t = Template('{% load relationship_tags %}'
+                     '{% if_relationship paul john "friends" %}y{% else %}n{% endif_relationship %}')
         c = Context({'john': self.john, 'paul': self.paul})
         rendered = t.render(c)
         self.assertEqual(rendered, 'n')
 
-        t = Template('{% load relationship_tags %}{% if_relationship john yoko "friends" %}y{% else %}n{% endif_relationship %}')
+        t = Template('{% load relationship_tags %}'
+                     '{% if_relationship john yoko "friends" %}y{% else %}n{% endif_relationship %}')
         c = Context({'john': self.john, 'yoko': self.yoko})
         rendered = t.render(c)
         self.assertEqual(rendered, 'y')
@@ -539,7 +544,8 @@ class RelationshipsTagsTestCase(BaseRelationshipsTestCase):
         group_qs = Group.objects.all().order_by('name')
 
         # john is friends w/ yoko so show yoko's groups
-        t = Template('{% load relationship_tags %}{% for group in qs|friend_content:user %}{{ group.name }}|{% endfor %}')
+        t = Template('{% load relationship_tags %}{% for group in qs|friend_content:user %}'
+                     '{{ group.name }}|{% endfor %}')
         c = Context({'user': self.john, 'qs': group_qs})
         rendered = t.render(c)
         self.assertEqual(rendered, 'characters|john_yoko|')
@@ -550,19 +556,22 @@ class RelationshipsTagsTestCase(BaseRelationshipsTestCase):
         self.assertEqual(rendered, '')
 
         # john is following paul & yoko
-        t = Template('{% load relationship_tags %}{% for group in qs|following_content:user %}{{ group.name }}|{% endfor %}')
+        t = Template('{% load relationship_tags %}{% for group in qs|following_content:user %}'
+                     '{{ group.name }}|{% endfor %}')
         c = Context({'user': self.john, 'qs': group_qs})
         rendered = t.render(c)
         self.assertEqual(rendered, 'beatles|characters|john_yoko|')
 
         # yoko is followed by john
-        t = Template('{% load relationship_tags %}{% for group in qs|followers_content:user %}{{ group.name }}|{% endfor %}')
+        t = Template('{% load relationship_tags %}{% for group in qs|followers_content:user %}'
+                     '{{ group.name }}|{% endfor %}')
         c = Context({'user': self.yoko, 'qs': group_qs})
         rendered = t.render(c)
         self.assertEqual(rendered, 'beatles|john_yoko|')
 
         # paul is blocking john, so every group but ones with him
-        t = Template('{% load relationship_tags %}{% for group in qs|unblocked_content:user %}{{ group.name }}|{% endfor %}')
+        t = Template('{% load relationship_tags %}{% for group in qs|unblocked_content:user %}'
+                     '{{ group.name }}|{% endfor %}')
         c = Context({'user': self.paul, 'qs': group_qs})
         rendered = t.render(c)
         self.assertEqual(rendered, 'characters|')
@@ -574,7 +583,8 @@ class RelationshipsTagsTestCase(BaseRelationshipsTestCase):
         self.assertEqual(rendered, 'beatles|')
 
         # make sure it works with a model string
-        t = Template('{% load relationship_tags %}{% for group in "auth.group"|unblocked_content:user %}{{ group.name }}|{% endfor %}')
+        t = Template('{% load relationship_tags %}{% for group in "auth.group"|unblocked_content:user %}'
+                     '{{ group.name }}|{% endfor %}')
         c = Context({'user': self.john})
         rendered = t.render(c)
         self.assertEqual(rendered, 'beatles|')
