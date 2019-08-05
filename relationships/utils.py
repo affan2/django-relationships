@@ -1,7 +1,7 @@
 from django.db.models import Q, QuerySet
 from django.db import connections, router, transaction, signals
 
-# from .models import RelationshipStatus
+from .models import RelationshipStatus
 from .compat import User
 
 

@@ -45,7 +45,7 @@ class BaseRelationshipsTestCase(TestCase):
     def _sort_by_pk(self, list_or_qs):
         annotated = [(item.pk, item) for item in list_or_qs]
         annotated.sort()
-        return map(lambda item_tuple: item_tuple[1], annotated)
+        return [item_tuple[1] for item_tuple in annotated]
 
     def assertQuerysetEqual(self, a, b):
         return self.assertEqual(self._sort_by_pk(a), self._sort_by_pk(b))
@@ -324,22 +324,22 @@ class RelationshipsViewsTestCase(BaseRelationshipsTestCase):
         url = reverse('relationship_list', args=['John'])
         resp = self.client.get(url)
 
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         self.assertQuerysetEqual(resp.context['relationship_list'], self.john.relationships.following())
 
         url = reverse('relationship_list', args=['John', 'followers'])
         resp = self.client.get(url)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         self.assertQuerysetEqual(resp.context['relationship_list'], self.john.relationships.followers())
 
         url = reverse('relationship_list', args=['John', 'following'])
         resp = self.client.get(url)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         self.assertQuerysetEqual(resp.context['relationship_list'], self.john.relationships.following())
 
         url = reverse('relationship_list', args=['John', 'friends'])
         resp = self.client.get(url)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         self.assertQuerysetEqual(resp.context['relationship_list'], self.john.relationships.friends())
 
         url = reverse('relationship_list', args=['John', 'blocking'])

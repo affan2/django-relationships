@@ -12,8 +12,8 @@ from django.template.loader import render_to_string
 
 from relationships.decorators import require_user
 from relationships.models import RelationshipStatus
-#from actstream import actions
-#from actstream.models import Action
+from actstream import actions
+from actstream.models import Action
 import json
 
 
@@ -96,7 +96,7 @@ def relationship_handler(request, user, status_slug, add=True,
             actions.unfollow(request.user, user)
             ctype = ContentType.objects.get_for_model(request.user)
             target_content_type = ContentType.objects.get_for_model(user)
-            Action.objects.all().filter(actor_content_type=ctype, actor_object_id=request.user.id, verb=u'started following', target_content_type=target_content_type, target_object_id = user.id ).delete()
+            Action.objects.all().filter(actor_content_type=ctype, actor_object_id=request.user.id, verb='started following', target_content_type=target_content_type, target_object_id = user.id ).delete()
 
         if request.is_ajax():
             return HttpResponse(json.dumps(dict(success=True, count=user.relationships.followers().count())))
@@ -107,8 +107,7 @@ def relationship_handler(request, user, status_slug, add=True,
         template_name = success_template_name
 
     return render_to_response(template_name,
-        {'to_user': user, 'status': status, 'add': add},
-        context_instance=RequestContext(request))
+        {'to_user': user, 'status': status, 'add': add})
 
 
 def get_followers(request, content_type_id, object_id):
@@ -118,11 +117,11 @@ def get_followers(request, content_type_id, object_id):
         return render_to_response("relationships/friend_list_all.html", {
             "profile_user": user,
             "friends": user.relationships.followers,
-        }, context_instance=RequestContext(request))
+        })
     else:
         return render_to_response("relationships/render_friend_list_all.html", {
             "friends": user.relationships.followers,
-        }, context_instance=RequestContext(request))        
+        })
 
 
 def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
@@ -142,7 +141,7 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
             'is_incremental': False,
             'data_href':data_href,
             'data_chunk':settings.MIN_FOLLOWERS_CHUNK
-        }, context_instance=RequestContext(request))
+        })
 
     sub_followers = user.relationships.followers().order_by('-date_joined')[s:l]
 
@@ -156,7 +155,7 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
         template = 'relationships/friend_list_all.html'
         if sub_followers:
             ret_data = {
-                'html': render_to_string(template, context_instance=context).strip(),
+                'html': render_to_string(template, context=context).strip(),
                 'success': True
             }
         else:
@@ -168,7 +167,7 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
     else:
         return render_to_response("relationships/render_friend_list_all.html", {
             "friends": sub_followers,
-        }, context_instance=RequestContext(request))
+        })
 
 
 def get_following(request, content_type_id, object_id):
@@ -178,11 +177,11 @@ def get_following(request, content_type_id, object_id):
         return render_to_response("relationships/friend_list_all.html", {
             "profile_user": user,
             "friends": user.relationships.following,
-        }, context_instance=RequestContext(request))
+        })
     else:
         return render_to_response("relationships/render_friend_list_all.html", {
             "friends": user.relationships.following,
-        }, context_instance=RequestContext(request))
+        })
 
 
 def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
@@ -202,7 +201,7 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
             "friends": user.relationships.following().order_by('-date_joined')[s:l],
             'is_incremental': False,
             'data_href':data_href
-        }, context_instance=RequestContext(request))
+        })
 
     sub_following = user.relationships.following().order_by('-date_joined')[s:l]
 
@@ -216,7 +215,7 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
         template = 'relationships/friend_list_all.html'
         if sub_following:
             ret_data = {
-                'html': render_to_string(template, context_instance=context).strip(),
+                'html': render_to_string(template, context=context).strip(),
                 'success': True
             }
         else:
@@ -228,4 +227,4 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
     else:
         return render_to_response("relationships/render_friend_list_all.html", {
             "friends": user.relationships.following()[s:l],
-        }, context_instance=RequestContext(request))        
+        })
