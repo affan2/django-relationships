@@ -1,11 +1,10 @@
 from django.db.models import Q, QuerySet
 from django.db import connections, router, transaction, signals
-
-from .models import RelationshipStatus
-from .compat import User
+from django.contrib.auth import get_user_model
 
 
 def relationship_exists(from_user, to_user, status_slug='following'):
+    from . models import RelationshipStatus
     status = RelationshipStatus.objects.by_slug(status_slug)
     if status.from_slug == status_slug:
         return from_user.relationships.exists(to_user, status)
@@ -17,10 +16,10 @@ def relationship_exists(from_user, to_user, status_slug='following'):
 
 def extract_user_field(model):
     for field in model._meta.fields + model._meta.many_to_many:
-        if field.rel and field.rel.to == User:
+        if field.rel and field.rel.to == get_user_model():
             return field.name
     for rel in model._meta.get_all_related_many_to_many_objects():
-        if rel.model == User:
+        if rel.model == get_user_model():
             return rel.var_name
 
 

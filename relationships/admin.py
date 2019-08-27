@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import RelationshipStatusAdminForm
@@ -19,6 +19,7 @@ class UserRelationshipAdmin(UserAdmin):
 
 class RelationshipStatusAdmin(admin.ModelAdmin):
     form = RelationshipStatusAdminForm
+
 
 # admin.site.unregister(User)
 # admin.site.register(User, UserRelationshipAdmin)

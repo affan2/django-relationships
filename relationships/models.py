@@ -5,8 +5,7 @@ from django.db import models, connection
 from django.db.models.fields.related import ManyToManyRel
 from .utils import create_many_related_manager
 from django.utils.translation import ugettext_lazy as _
-
-from .compat import User
+from django.contrib.auth import get_user_model
 
 
 class RelationshipStatusManager(models.Manager):
@@ -51,9 +50,9 @@ class RelationshipStatus(models.Model):
 
 
 class Relationship(models.Model):
-    from_user = models.ForeignKey(User,
+    from_user = models.ForeignKey(get_user_model(),
         related_name='from_users', verbose_name=_('from user'), on_delete=models.CASCADE, )
-    to_user = models.ForeignKey(User,
+    to_user = models.ForeignKey(get_user_model(),
         related_name='to_users', verbose_name=_('to user'), on_delete=models.CASCADE, )
     status = models.ForeignKey(RelationshipStatus, verbose_name=_('status'), on_delete=models.CASCADE, )
     created = models.DateTimeField(_('created'), auto_now_add=True)
@@ -73,11 +72,11 @@ class Relationship(models.Model):
                    'to_user': self.to_user.username})
 
 
-field = models.ManyToManyField(User, through=Relationship,
+field = models.ManyToManyField(get_user_model(), through=Relationship,
                                symmetrical=False, related_name='related_to')
 
 
-class RelationshipManager(User._default_manager.__class__):
+class RelationshipManager(get_user_model()._default_manager.__class__):
     def __init__(self, instance=None, *args, **kwargs):
         super(RelationshipManager, self).__init__(*args, **kwargs)
         self.instance = instance
@@ -166,7 +165,7 @@ class RelationshipManager(User._default_manager.__class__):
             query.update(self._get_to_query(status))
 
         # WHY: gdpr compliance.
-        return User.objects.filter(**query).exclude(user_profile__is_private=True)
+        return get_user_model().objects.filter(**query).exclude(user_profile__is_private=True)
 
     # WHAT: Gets the followers of a user. Excludes followers with a private profile due to GDRP compliance.
     def get_related_to(self, status):
@@ -174,7 +173,7 @@ class RelationshipManager(User._default_manager.__class__):
         Returns a QuerySet of user objects which have created a relationship to
         the given user.
         """
-        return User.objects.filter(**self._get_to_query(status)).exclude(user_profile__is_private=True)
+        return get_user_model().objects.filter(**self._get_to_query(status)).exclude(user_profile__is_private=True)
 
     def only_to(self, status):
         """
@@ -218,7 +217,7 @@ class RelationshipManager(User._default_manager.__class__):
             if status:
                 query.update(from_users__status=status)
 
-        return User.objects.filter(**query).exists()
+        return get_user_model().objects.filter(**query).exists()
 
     def following(self):
         if settings.SITE_ID > 1:
@@ -299,7 +298,7 @@ class RelationshipManager(User._default_manager.__class__):
 
 
 fake_rel = ManyToManyRel(
-    to=User,
+    to=get_user_model(),
     through=Relationship,
     field='from_user',
 )
@@ -310,7 +309,7 @@ RelatedManager = create_many_related_manager(RelationshipManager, fake_rel)
 class RelationshipsDescriptor(object):
     def __get__(self, instance, instance_type=None):
         manager = RelatedManager(
-            model=User,
+            model=get_user_model(),
             query_field_name='related_to',
             instance=instance,
             symmetrical=False,
@@ -322,5 +321,5 @@ class RelationshipsDescriptor(object):
 
 
 # HACK
-field.contribute_to_class(User, 'relationships')
-setattr(User, 'relationships', RelationshipsDescriptor())
+field.contribute_to_class(get_user_model(), 'relationships')
+setattr(get_user_model(), 'relationships', RelationshipsDescriptor())

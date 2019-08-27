@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.urls import reverse
 from django.template import Template, Context
@@ -8,7 +10,8 @@ from relationships.forms import RelationshipStatusAdminForm
 from relationships.listeners import (attach_relationship_listener, detach_relationship_listener)
 from relationships.models import Relationship, RelationshipStatus
 from relationships.utils import (relationship_exists, extract_user_field, positive_filter, negative_filter)
-from relationships.compat import User
+from django.conf import settings
+from django.contrib.auth import get_user_model
 
 
 class BaseRelationshipsTestCase(TestCase):
@@ -26,10 +29,10 @@ class BaseRelationshipsTestCase(TestCase):
     fixtures = ['relationships.json']
 
     def setUp(self):
-        self.walrus = User.objects.get(username='The_Walrus')  # pk 1
-        self.john = User.objects.get(username='John')  # pk 2
-        self.paul = User.objects.get(username='Paul')  # pk 3
-        self.yoko = User.objects.get(username='Yoko')  # pk 4
+        self.walrus = get_user_model().objects.get(username='The_Walrus')  # pk 1
+        self.john = get_user_model().objects.get(username='John')  # pk 2
+        self.paul = get_user_model().objects.get(username='Paul')  # pk 3
+        self.yoko = get_user_model().objects.get(username='Yoko')  # pk 4
 
         self.following = RelationshipStatus.objects.get(from_slug='following')
         self.blocking = RelationshipStatus.objects.get(from_slug='blocking')

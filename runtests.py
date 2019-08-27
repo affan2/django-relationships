@@ -4,6 +4,7 @@ from os.path import dirname, abspath
 
 import django
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 if len(sys.argv) > 1 and 'postgres' in sys.argv:
     sys.argv.remove('postgres')
