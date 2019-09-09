@@ -76,7 +76,7 @@ field = models.ManyToManyField(settings.AUTH_USER_MODEL, through=Relationship,
                                symmetrical=False, related_name='related_to')
 
 
-class RelationshipManager(settings.AUTH_USER_MODEL._default_manager.__class__):
+class RelationshipManager(get_user_model()._default_manager.__class__):
     def __init__(self, instance=None, *args, **kwargs):
         super(RelationshipManager, self).__init__(*args, **kwargs)
         self.instance = instance
@@ -321,5 +321,5 @@ class RelationshipsDescriptor(object):
 
 
 # HACK
-field.contribute_to_class(settings.AUTH_USER_MODEL, 'relationships')
+field.contribute_to_class(get_user_model(), 'relationships')
 setattr(get_user_model(), 'relationships', RelationshipsDescriptor())
