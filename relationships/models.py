@@ -50,9 +50,9 @@ class RelationshipStatus(models.Model):
 
 
 class Relationship(models.Model):
-    from_user = models.ForeignKey(get_user_model(),
+    from_user = models.ForeignKey(settings.AUTH_USER_MODEL,
         related_name='from_users', verbose_name=_('from user'), on_delete=models.CASCADE, )
-    to_user = models.ForeignKey(get_user_model(),
+    to_user = models.ForeignKey(settings.AUTH_USER_MODEL,
         related_name='to_users', verbose_name=_('to user'), on_delete=models.CASCADE, )
     status = models.ForeignKey(RelationshipStatus, verbose_name=_('status'), on_delete=models.CASCADE, )
     created = models.DateTimeField(_('created'), auto_now_add=True)
@@ -72,11 +72,11 @@ class Relationship(models.Model):
                    'to_user': self.to_user.username})
 
 
-field = models.ManyToManyField(get_user_model(), through=Relationship,
+field = models.ManyToManyField(settings.AUTH_USER_MODEL, through=Relationship,
                                symmetrical=False, related_name='related_to')
 
 
-class RelationshipManager(get_user_model()._default_manager.__class__):
+class RelationshipManager(settings.AUTH_USER_MODEL._default_manager.__class__):
     def __init__(self, instance=None, *args, **kwargs):
         super(RelationshipManager, self).__init__(*args, **kwargs)
         self.instance = instance
@@ -321,5 +321,5 @@ class RelationshipsDescriptor(object):
 
 
 # HACK
-field.contribute_to_class(get_user_model(), 'relationships')
+field.contribute_to_class(settings.AUTH_USER_MODEL, 'relationships')
 setattr(get_user_model(), 'relationships', RelationshipsDescriptor())
