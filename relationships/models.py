@@ -298,7 +298,7 @@ class RelationshipManager(get_user_model()._default_manager.__class__):
 
 
 fake_rel = ManyToManyRel(
-    to=get_user_model(),
+    to=settings.AUTH_USER_MODEL,
     through=Relationship,
     field='from_user',
 )
@@ -309,7 +309,7 @@ RelatedManager = create_many_related_manager(RelationshipManager, fake_rel)
 class RelationshipsDescriptor(object):
     def __get__(self, instance, instance_type=None):
         manager = RelatedManager(
-            model=get_user_model(),
+            model=settings.AUTH_USER_MODEL,
             query_field_name='related_to',
             instance=instance,
             symmetrical=False,
@@ -320,6 +320,9 @@ class RelationshipsDescriptor(object):
         return manager
 
 
+# These need get_user_model() and NOT settings.AUTH_USER_MODEL because the
+# latter is a string and the following operations need an actual user object, and its
+# associated methods and functions, and not a string describing it.
 # HACK
 field.contribute_to_class(get_user_model(), 'relationships')
 setattr(get_user_model(), 'relationships', RelationshipsDescriptor())
