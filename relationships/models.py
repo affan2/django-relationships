@@ -324,5 +324,5 @@ class RelationshipsDescriptor(object):
 # latter is a string and the following operations need an actual user object, and its
 # associated methods and functions, and not a string describing it.
 # HACK
-field.contribute_to_class(get_user_model(), 'relationships')
-setattr(get_user_model(), 'relationships', RelationshipsDescriptor())
+# field.contribute_to_class(get_user_model(), 'relationships')
+# setattr(get_user_model(), 'relationships', RelationshipsDescriptor())
