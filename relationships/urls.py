@@ -4,7 +4,6 @@ from .views import get_follower_subset, get_following_subset, \
     get_following, get_followers, relationship_handler, relationship_list, relationship_redirect
 
 urlpatterns = [
-    'relationships.views',
     re_path(r'^$', relationship_redirect, name='relationship_list_base'),
     re_path(r'^(?P<username>[\w.@+-]+)/(?:(?P<status_slug>[\w-]+)/)?$', relationship_list, name='relationship_list'),
     re_path(r'^add/(?P<username>[\w.@+-]+)/(?P<status_slug>[\w-]+)/$', relationship_handler, {'add': True},
