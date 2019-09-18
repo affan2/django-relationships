@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 # from django.contrib.auth.models import User
 from django.urls import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render,get_object_or_404
 from django.template import RequestContext
 from django.utils.http import urlquote
 from django.views.generic import ListView
@@ -106,7 +106,7 @@ def relationship_handler(request, user, status_slug, add=True,
 
         template_name = success_template_name
 
-    return render_to_response(template_name,
+    return render(request, template_name,
         {'to_user': user, 'status': status, 'add': add})
 
 
@@ -114,12 +114,12 @@ def get_followers(request, content_type_id, object_id):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     if request.is_ajax():
-        return render_to_response("relationships/friend_list_all.html", {
+        return render(request, "relationships/friend_list_all.html", {
             "profile_user": user,
             "friends": user.relationships.followers,
         })
     else:
-        return render_to_response("relationships/render_friend_list_all.html", {
+        return render(request, "relationships/render_friend_list_all.html", {
             "friends": user.relationships.followers,
         })
 
@@ -135,7 +135,7 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
                                                             'object_id':object_id,
                                                             'sIndex':0,
                                                             'lIndex': settings.MIN_FOLLOWERS_CHUNK})
-        return render_to_response("relationships/friend_list_all.html", {
+        return render(request, "relationships/friend_list_all.html", {
             "profile_user": user,
             "friends": user.relationships.followers().order_by('-date_joined')[s:l],
             'is_incremental': False,
@@ -165,7 +165,7 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
 
         return HttpResponse(json.dumps(ret_data), mimetype="application/json")
     else:
-        return render_to_response("relationships/render_friend_list_all.html", {
+        return render(request, "relationships/render_friend_list_all.html", {
             "friends": sub_followers,
         })
 
@@ -174,12 +174,12 @@ def get_following(request, content_type_id, object_id):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     user = get_object_or_404(ctype.model_class(), pk=object_id)
     if request.is_ajax():
-        return render_to_response("relationships/friend_list_all.html", {
+        return render(request, "relationships/friend_list_all.html", {
             "profile_user": user,
             "friends": user.relationships.following,
         })
     else:
-        return render_to_response("relationships/render_friend_list_all.html", {
+        return render(request, "relationships/render_friend_list_all.html", {
             "friends": user.relationships.following,
         })
 
@@ -196,7 +196,7 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
                                                             'sIndex':0,
                                                             'lIndex': settings.MIN_FOLLOWERS_CHUNK})
         
-        return render_to_response("relationships/friend_list_all.html", {
+        return render(request, "relationships/friend_list_all.html", {
             "profile_user": user,
             "friends": user.relationships.following().order_by('-date_joined')[s:l],
             'is_incremental': False,
@@ -225,6 +225,6 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
 
         return HttpResponse(json.dumps(ret_data), mimetype="application/json")
     else:
-        return render_to_response("relationships/render_friend_list_all.html", {
+        return render(request, "relationships/render_friend_list_all.html", {
             "friends": user.relationships.following()[s:l],
         })
