@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import models, connection
 from django.db.models.fields.related import ManyToManyRel
-from .utils import create_many_related_manager
+from django.db.models.fields.related_descriptors import create_forward_many_to_many_manager as create_many_related_manager
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
 
@@ -15,6 +15,9 @@ class RelationshipStatusManager(models.Manager):
 
     def blocking(self):
         return self.get(from_slug='blocking')
+
+    def blocked(self):
+        return self.get(from_slug='blocked')
 
     def by_slug(self, status_slug):
         return self.get(
@@ -56,6 +59,7 @@ class Relationship(models.Model):
         related_name='to_users', verbose_name=_('to user'), on_delete=models.CASCADE, )
     status = models.ForeignKey(RelationshipStatus, verbose_name=_('status'), on_delete=models.CASCADE, )
     created = models.DateTimeField(_('created'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('updated_at'), auto_now=True)
     weight = models.FloatField(_('weight'), default=1.0, blank=True, null=True)
     site = models.ForeignKey(Site, default=settings.SITE_ID,
         verbose_name=_('site'), related_name='relationships', on_delete=models.CASCADE, )
@@ -117,6 +121,33 @@ class RelationshipManager(get_user_model()._default_manager.__class__):
             return (relationship, user.relationships.add(self.instance, status, False))
         else:
             return relationship
+
+    def get_relationship_obj(self, user, status=None, symmetrical=False):
+        if not status:
+            status = RelationshipStatus.objects.following()
+
+        relationship = Relationship.objects.get(
+            from_user=self.instance,
+            to_user=user,
+            status=status,
+            site=Site.objects.get_current()
+        )
+
+        if symmetrical:
+            return (relationship, user.relationships.get_relationship_obj(self.instance, status, False))
+        else:
+            return relationship
+
+    def filter_relationships(self, status=None):
+        if not status:
+            status = RelationshipStatus.objects.following()
+
+        return Relationship.objects.filter(
+            from_user=self.instance,
+            status=status,
+            site=Site.objects.get_current()
+        )
+
 
     def remove(self, user, status=None, symmetrical=False):
         """
@@ -300,7 +331,7 @@ class RelationshipManager(get_user_model()._default_manager.__class__):
 fake_rel = ManyToManyRel(
     to=settings.AUTH_USER_MODEL,
     through=Relationship,
-    field='from_user',
+    field=None,
 )
 
 RelatedManager = create_many_related_manager(RelationshipManager, fake_rel)
@@ -318,11 +349,3 @@ class RelationshipsDescriptor(object):
             through=Relationship,
         )
         return manager
-
-
-# These need get_user_model() and NOT settings.AUTH_USER_MODEL because the
-# latter is a string and the following operations need an actual user object, and its
-# associated methods and functions, and not a string describing it.
-# HACK
-# field.contribute_to_class(get_user_model(), 'relationships')
-# setattr(get_user_model(), 'relationships', RelationshipsDescriptor())

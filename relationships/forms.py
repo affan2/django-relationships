@@ -7,6 +7,7 @@ class RelationshipStatusAdminForm(forms.ModelForm):
     class Meta:
         model = RelationshipStatus
         fields = ['name', 'verb', 'from_slug', 'to_slug', 'symmetrical_slug', 'login_required', 'private', ]
+        fields = '__all__'
 
     def duplicate_slug_check(self, status_slug):
         status_qs = RelationshipStatus.objects.filter(
