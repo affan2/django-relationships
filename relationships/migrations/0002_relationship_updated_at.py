@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='relationship',
             name='updated_at',
-            field=models.DateTimeField(default=datetime.datetime(2015, 2, 8, 3, 42, 38, 33802, tzinfo=utc), verbose_name='updated_at', auto_now=True),
+            field=models.DateTimeField(default=datetime.datetime.now, verbose_name='updated_at', auto_now=True),
             preserve_default=False,
         ),
     ]

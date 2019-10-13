@@ -3,9 +3,10 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import models, connection
 from django.db.models.fields.related import ManyToManyRel
-from django.db.models.fields.related_descriptors import create_forward_many_to_many_manager as create_many_related_manager
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
+
+from .utils import create_many_related_manager
 
 
 class RelationshipStatusManager(models.Manager):

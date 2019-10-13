@@ -8,9 +8,6 @@ class RelationshipsConfig(AppConfig):
         from django.contrib.auth import get_user_model
         User = get_user_model()
 
-        import compat
-        compat.User = User
-
         from relationships import models as rmodels
         rmodels.User = User
 

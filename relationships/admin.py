@@ -1,8 +1,7 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User as DefaultUserModel
 
-from .compat import User
 from .forms import RelationshipStatusAdminForm
 from .models import Relationship, RelationshipStatus
 
@@ -22,14 +21,13 @@ class RelationshipStatusAdmin(admin.ModelAdmin):
     form = RelationshipStatusAdminForm
 
 
-if User == DefaultUserModel:
-    class UserRelationshipAdmin(UserRelationshipAdminMixin, UserAdmin):
-        pass
+class UserRelationshipAdmin(UserRelationshipAdminMixin, UserAdmin):
+    pass
 
-    try:
-        admin.site.unregister(User)
-    except admin.sites.NotRegistered:
-        pass
-    admin.site.register(User, UserRelationshipAdmin)
+try:
+    admin.site.unregister(get_user_model())
+except admin.sites.NotRegistered:
+    pass
+admin.site.register(get_user_model(), UserRelationshipAdmin)
 
 admin.site.register(RelationshipStatus, RelationshipStatusAdmin)

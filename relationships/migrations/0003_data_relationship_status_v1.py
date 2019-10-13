@@ -3,12 +3,13 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 
+
 def create_relationship_status(apps, schema_editor):
 
 	RelationshipStatus = apps.get_model('relationships', "RelationshipStatus")
 
 	rs = RelationshipStatus.objects.filter(pk=1)
-	if(rs.exists()):
+	if rs.exists():
 		rs = rs[0]
 		rs.name = 'Following'
 		rs.to_slug = 'followers'
@@ -26,7 +27,7 @@ def create_relationship_status(apps, schema_editor):
 				)
 
 	rs = RelationshipStatus.objects.filter(pk=2)
-	if(rs.exists()):
+	if rs.exists():
 		rs = rs[0]
 		rs.name = 'Blocking'
 		rs.to_slug = 'blockers'
@@ -47,12 +48,13 @@ def create_relationship_status(apps, schema_editor):
 				private=True,
 				)
 
+
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('relationships', '0002_relationship_updated_at'),
-    ]
+	dependencies = [
+		('relationships', '0002_relationship_updated_at'),
+	]
 
-    operations = [
-    	migrations.RunPython(create_relationship_status),
-    ]
+	operations = [
+		migrations.RunPython(create_relationship_status),
+	]
