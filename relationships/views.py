@@ -52,7 +52,7 @@ def relationship_list(request, user, status_slug=None,
         status = get_relationship_status_or_404(status_slug)
 
     # do some basic authentication
-    if status.login_required and not request.user.is_authenticated():
+    if status.login_required and not request.user.is_authenticated:
         path = urlquote(request.get_full_path())
         tup = settings.LOGIN_URL, 'next', path
         return HttpResponseRedirect('%s?%s=%s' % tup)
