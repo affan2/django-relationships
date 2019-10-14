@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-# from django.contrib.auth.models import User
 from django.urls import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render,get_object_or_404
@@ -195,7 +194,7 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
                                                             'object_id':object_id,
                                                             'sIndex':0,
                                                             'lIndex': settings.MIN_FOLLOWERS_CHUNK})
-        
+
         return render(request, "relationships/friend_list_all.html", {
             "profile_user": user,
             "friends": user.relationships.following().order_by('-date_joined')[s:l],

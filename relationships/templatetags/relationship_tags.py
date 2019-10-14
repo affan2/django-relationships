@@ -3,78 +3,54 @@ from django.urls import reverse
 from django.apps import apps
 from django.template import TemplateSyntaxError, Node, Variable
 from django.utils.functional import wraps
+
 from relationships.models import RelationshipStatus
-from relationships.utils import positive_filter, negative_filter, relationship_exists
+from relationships.utils import positive_filter, negative_filter
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import cache
 from django.template import loader, RequestContext
 
 register = template.Library()
 
 
-class IfRelationshipNode(template.Node):
-    def __init__(self, nodelist_true, nodelist_false, *args):
-        self.nodelist_true = nodelist_true
-        self.nodelist_false = nodelist_false
-        self.from_user, self.to_user, self.status = args
-        self.status = self.status.replace('"', '')  # strip quotes
-
-    def render(self, context):
-        from_user = template.resolve_variable(self.from_user, context)
-        to_user = template.resolve_variable(self.to_user, context)
-
-        if from_user.is_anonymous() or to_user.is_anonymous():
-            return self.nodelist_false.render(context)
-
-        try:
-            status = RelationshipStatus.objects.by_slug(self.status)
-        except RelationshipStatus.DoesNotExist:
-            raise template.TemplateSyntaxError('RelationshipStatus not found')
-
-        if status.from_slug == self.status:
-            val = from_user.relationships.exists(to_user, status)
-        elif status.to_slug == self.status:
-            val = to_user.relationships.exists(from_user, status)
-        else:
-            val = from_user.relationships.exists(to_user, status, symmetrical=True)
-
-        if val:
-            return self.nodelist_true.render(context)
-
-        return self.nodelist_false.render(context)
-
-
-@register.tag
-def if_relationship(parser, token):
+@register.simple_tag
+def relationship(from_user, to_user, status):
     """
     Determine if a certain type of relationship exists between two users.
     The ``status`` parameter must be a slug matching either the from_slug,
     to_slug or symmetrical_slug of a RelationshipStatus.
 
     Example::
-
-        {% if_relationship from_user to_user "friends" %}
+        {% relationship from_user to_user "friends" as felas %}
+        {% relationship from_user to_user "blocking" as blocked %}
+        {% if felas %}
             Here are pictures of me drinking alcohol
+        {% elif blocked %}
+            damn seo experts
         {% else %}
             Sorry coworkers
-        {% endif_relationship %}
-
-        {% if_relationship from_user to_user "blocking" %}
-            damn seo experts
-        {% endif_relationship %}
+        {% endif %}
     """
-    bits = list(token.split_contents())
-    if len(bits) != 4:
-        raise TemplateSyntaxError("%r takes 3 arguments:\n%s" % (bits[0], if_relationship.__doc__))
-    end_tag = 'end' + bits[0]
-    nodelist_true = parser.parse(('else', end_tag))
-    token = parser.next_token()
-    if token.contents == 'else':
-        nodelist_false = parser.parse((end_tag,))
-        parser.delete_first_token()
+    requested_status = status.replace('"', '')  # strip quotes
+
+    if from_user.is_anonymous() or to_user.is_anonymous():
+        return False
+
+    try:
+        status = RelationshipStatus.objects.by_slug(requested_status)
+    except RelationshipStatus.DoesNotExist:
+        raise template.TemplateSyntaxError('RelationshipStatus not found')
+
+    if status.from_slug == requested_status:
+        val = from_user.relationships.exists(to_user, status)
+    elif status.to_slug == requested_status:
+        val = to_user.relationships.exists(from_user, status)
     else:
-        nodelist_false = template.NodeList()
-    return IfRelationshipNode(nodelist_true, nodelist_false, *bits[1:])
+        val = from_user.relationships.exists(to_user, status, symmetrical=True)
+
+    if val:
+        return True
+
+    return False
 
 
 @register.filter
@@ -119,6 +95,7 @@ def positive_filter_decorator(func):
         if user.is_anonymous():
             return qs.none()
         return func(qs, user)
+
     inner._decorated_function = getattr(func, '_decorated_function', func)
     return wraps(func)(inner)
 
@@ -133,6 +110,7 @@ def negative_filter_decorator(func):
         if user.is_anonymous():
             return qs
         return func(qs, user)
+
     inner._decorated_function = getattr(func, '_decorated_function', func)
     return wraps(func)(inner)
 
@@ -248,7 +226,7 @@ class FollowingListSubset(AsNode):
         sIndex = self.args[1].resolve(context)
         lIndex = self.args[2].resolve(context)
         content_type = ContentType.objects.get_for_model(obj_instance).pk
-        
+
         return reverse('get_following_subset', kwargs={
             'content_type_id': content_type, 'object_id': obj_instance.pk, 'sIndex':sIndex, 'lIndex':lIndex})
 
@@ -269,7 +247,7 @@ class FollowerListSubset(AsNode):
         sIndex = self.args[1].resolve(context)
         lIndex = self.args[2].resolve(context)
         content_type = ContentType.objects.get_for_model(obj_instance).pk
-        
+
         return reverse('get_follower_subset', kwargs={
             'content_type_id': content_type, 'object_id': obj_instance.pk, 'sIndex':sIndex, 'lIndex':lIndex})
 
@@ -282,7 +260,7 @@ def follower_subset_url(parser, token):
                                   "{% follower_subset_url [actor_instance] %}")
     else:
         return FollowerListSubset.handle_token(parser, token)
-        
+
 
 @register.tag
 def get_relationship_type(parser, token):

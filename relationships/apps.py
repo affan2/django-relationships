@@ -12,8 +12,15 @@ class RelationshipsConfig(AppConfig):
         rmodels.User = User
 
         from django.db.models import ManyToManyField
-        from relationships.models import RelationshipsDescriptor, Relationship
-        field = ManyToManyField(User, through=Relationship,
-                    symmetrical=False, related_name='related_to')
+        from relationships.models import (
+            RelationshipsDescriptor,
+            Relationship
+        )
+        field = ManyToManyField(
+            User,
+            through=Relationship,
+            symmetrical=False,
+            related_name='related_to'
+        )
         field.contribute_to_class(User, 'relationships')
         setattr(User, 'relationships', RelationshipsDescriptor())

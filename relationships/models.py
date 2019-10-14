@@ -32,15 +32,15 @@ class RelationshipStatus(models.Model):
     name = models.CharField(_('name'), max_length=100)
     verb = models.CharField(_('verb'), max_length=100)
     from_slug = models.CharField(_('from slug'), max_length=100,
-        help_text=_("Denote the relationship from the user, i.e. 'following'"))
+                                 help_text=_("Denote the relationship from the user, i.e. 'following'"))
     to_slug = models.CharField(_('to slug'), max_length=100,
-        help_text=_("Denote the relationship to the user, i.e. 'followers'"))
+                               help_text=_("Denote the relationship to the user, i.e. 'followers'"))
     symmetrical_slug = models.CharField(_('symmetrical slug'), max_length=100,
-        help_text=_("When a mutual relationship exists, i.e. 'friends'"))
+                                        help_text=_("When a mutual relationship exists, i.e. 'friends'"))
     login_required = models.BooleanField(_('login required'), default=False,
-        help_text=_("Users must be logged in to see these relationships"))
+                                         help_text=_("Users must be logged in to see these relationships"))
     private = models.BooleanField(_('private'), default=False,
-        help_text=_("Only the user who owns these relationships can see them"))
+                                  help_text=_("Only the user who owns these relationships can see them"))
 
     objects = RelationshipStatusManager()
 
@@ -55,15 +55,15 @@ class RelationshipStatus(models.Model):
 
 class Relationship(models.Model):
     from_user = models.ForeignKey(settings.AUTH_USER_MODEL,
-        related_name='from_users', verbose_name=_('from user'), on_delete=models.CASCADE, )
+                                  related_name='from_users', verbose_name=_('from user'), on_delete=models.CASCADE)
     to_user = models.ForeignKey(settings.AUTH_USER_MODEL,
-        related_name='to_users', verbose_name=_('to user'), on_delete=models.CASCADE, )
-    status = models.ForeignKey(RelationshipStatus, verbose_name=_('status'), on_delete=models.CASCADE, )
+                                related_name='to_users', verbose_name=_('to user'), on_delete=models.CASCADE)
+    status = models.ForeignKey(RelationshipStatus, verbose_name=_('status'), on_delete=models.CASCADE)
     created = models.DateTimeField(_('created'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated_at'), auto_now=True)
     weight = models.FloatField(_('weight'), default=1.0, blank=True, null=True)
     site = models.ForeignKey(Site, default=settings.SITE_ID,
-        verbose_name=_('site'), related_name='relationships', on_delete=models.CASCADE, )
+                             verbose_name=_('site'), related_name='relationships', on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (('from_user', 'to_user', 'status', 'site'),)
@@ -72,13 +72,18 @@ class Relationship(models.Model):
         verbose_name_plural = _('Relationships')
 
     def __str__(self):
-        return (_('Relationship from %(from_user)s to %(to_user)s')
-                % {'from_user': self.from_user.username,
-                   'to_user': self.to_user.username})
+        return _('Relationship from {from_user} to {to_user}').format(
+            from_user=self.from_user.get_username(),
+            to_user=self.to_user.get_username()
+        )
 
 
-field = models.ManyToManyField(settings.AUTH_USER_MODEL, through=Relationship,
-                               symmetrical=False, related_name='related_to')
+field = models.ManyToManyField(
+    settings.AUTH_USER_MODEL,
+    through=Relationship,
+    symmetrical=False,
+    related_name='related_to'
+)
 
 
 class RelationshipManager(get_user_model()._default_manager.__class__):
@@ -148,7 +153,6 @@ class RelationshipManager(get_user_model()._default_manager.__class__):
             status=status,
             site=Site.objects.get_current()
         )
-
 
     def remove(self, user, status=None, symmetrical=False):
         """
@@ -251,6 +255,7 @@ class RelationshipManager(get_user_model()._default_manager.__class__):
 
         return get_user_model().objects.filter(**query).exists()
 
+    # some defaults
     def following(self):
         if settings.SITE_ID > 1:
             from people.models import PeopleWhiteLabel, UserProfile

@@ -1,6 +1,8 @@
 from django import forms
 from django.db.models import Q
-from .models import RelationshipStatus
+from django.utils.translation import ugettext as _
+
+from relationships.models import RelationshipStatus
 
 
 class RelationshipStatusAdminForm(forms.ModelForm):
@@ -23,25 +25,25 @@ class RelationshipStatusAdminForm(forms.ModelForm):
             raise forms.ValidationError('"%s" slug already in use on %s' % \
                 (status_slug, str(status_qs[0])))
 
-    def clean_from_slug(self):
-        self.duplicate_slug_check(self.cleaned_data['from_slug'])
-        return self.cleaned_data['from_slug']
+        def clean_from_slug(self):
+            self.duplicate_slug_check(self.cleaned_data['from_slug'])
+            return self.cleaned_data['from_slug']
 
-    def clean_to_slug(self):
-        self.duplicate_slug_check(self.cleaned_data['to_slug'])
-        return self.cleaned_data['to_slug']
+        def clean_to_slug(self):
+            self.duplicate_slug_check(self.cleaned_data['to_slug'])
+            return self.cleaned_data['to_slug']
 
-    def clean_symmetrical_slug(self):
-        self.duplicate_slug_check(self.cleaned_data['symmetrical_slug'])
-        return self.cleaned_data['symmetrical_slug']
+        def clean_symmetrical_slug(self):
+            self.duplicate_slug_check(self.cleaned_data['symmetrical_slug'])
+            return self.cleaned_data['symmetrical_slug']
 
-    def clean(self):
-        if self.errors:
+        def clean(self):
+            if self.errors:
+                return self.cleaned_data
+
+            if self.cleaned_data['from_slug'] == self.cleaned_data['to_slug'] or \
+                    self.cleaned_data['to_slug'] == self.cleaned_data['symmetrical_slug'] or \
+                    self.cleaned_data['symmetrical_slug'] == self.cleaned_data['from_slug']:
+                raise forms.ValidationError(_('from, to, and symmetrical slugs must be different'))
+
             return self.cleaned_data
-
-        if self.cleaned_data['from_slug'] == self.cleaned_data['to_slug'] or \
-           self.cleaned_data['to_slug'] == self.cleaned_data['symmetrical_slug'] or \
-           self.cleaned_data['symmetrical_slug'] == self.cleaned_data['from_slug']:
-            raise forms.ValidationError('from, to, and symmetrical slugs must be different')
-
-        return self.cleaned_data
