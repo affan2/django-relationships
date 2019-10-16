@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import RelationshipStatusAdminForm
-from .models import Relationship, RelationshipStatus
+from .models import Relationship, RelationshipStatus, Relationship
 
 
 class RelationshipInline(admin.TabularInline):
@@ -24,6 +24,14 @@ class RelationshipStatusAdmin(admin.ModelAdmin):
 class UserRelationshipAdmin(UserRelationshipAdminMixin, UserAdmin):
     pass
 
+
+class RelationshipAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def get_readonly_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields]
+
 try:
     admin.site.unregister(get_user_model())
 except admin.sites.NotRegistered:
@@ -31,3 +39,4 @@ except admin.sites.NotRegistered:
 admin.site.register(get_user_model(), UserRelationshipAdmin)
 
 admin.site.register(RelationshipStatus, RelationshipStatusAdmin)
+admin.site.register(Relationship, RelationshipAdmin)
