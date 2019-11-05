@@ -162,7 +162,7 @@ def get_follower_subset(request, content_type_id, object_id, sIndex, lIndex):
                 'success': False
             }
 
-        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
+        return HttpResponse(json.dumps(ret_data), content_type="application/json")
     else:
         return render(request, "relationships/render_friend_list_all.html", {
             "friends": sub_followers,
@@ -222,7 +222,7 @@ def get_following_subset(request, content_type_id, object_id, sIndex, lIndex):
                 'success': False
             }
 
-        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
+        return HttpResponse(json.dumps(ret_data), content_type="application/json")
     else:
         return render(request, "relationships/render_friend_list_all.html", {
             "friends": user.relationships.following()[s:l],
