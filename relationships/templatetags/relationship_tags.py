@@ -32,7 +32,7 @@ def relationship(from_user, to_user, status):
     """
     requested_status = status.replace('"', '')  # strip quotes
 
-    if from_user.is_anonymous() or to_user.is_anonymous():
+    if from_user.is_anonymous or to_user.is_anonymous:
         return False
 
     try:
@@ -92,7 +92,7 @@ def positive_filter_decorator(func):
             if not model:
                 return []
             qs = model._default_manager.all()
-        if user.is_anonymous():
+        if user.is_anonymous:
             return qs.none()
         return func(qs, user)
 
@@ -107,7 +107,7 @@ def negative_filter_decorator(func):
             if not model:
                 return []
             qs = model._default_manager.all()
-        if user.is_anonymous():
+        if user.is_anonymous:
             return qs
         return func(qs, user)
 
