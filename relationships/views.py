@@ -10,7 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 
 from relationships.decorators import require_user
-from relationships.models import RelationshipStatus
+from relationships.models import Relationship, RelationshipStatus
 from actstream import actions
 from actstream.models import Action
 import json
@@ -88,14 +88,22 @@ def relationship_handler(request, user, status_slug, add=True,
 
     if request.method == 'POST':
         if add:
-            request.user.relationships.add(user, status, is_symm)
+            Relationship.objects.create(from_user=request.user, to_user=user, status=status)
+            if is_symm:
+                Relationship.objects.create(from_user=user, to_user=request.user, status=status)
+
             actions.follow(request.user, user, actor_only=False)
         else:
-            request.user.relationships.remove(user, status, is_symm)
+            Relationship.objects.filter(from_user=request.user, to_user=user, status=status).delete()
+            if is_symm:
+                Relationship.objects.filter(from_user=user, to_user=request.user, status=status).delete()
             actions.unfollow(request.user, user)
+
             ctype = ContentType.objects.get_for_model(request.user)
             target_content_type = ContentType.objects.get_for_model(user)
-            Action.objects.all().filter(actor_content_type=ctype, actor_object_id=request.user.id, verb='started following', target_content_type=target_content_type, target_object_id = user.id ).delete()
+            Action.objects.all().filter(
+                actor_content_type=ctype, actor_object_id=request.user.id, verb='started following',
+                target_content_type=target_content_type, target_object_id = user.id).delete()
 
         if request.is_ajax():
             return HttpResponse(json.dumps(dict(success=True, count=user.relationships.followers().count())))
@@ -105,8 +113,7 @@ def relationship_handler(request, user, status_slug, add=True,
 
         template_name = success_template_name
 
-    return render(request, template_name,
-        {'to_user': user, 'status': status, 'add': add})
+    return render(request, template_name, {'to_user': user, 'status': status, 'add': add})
 
 
 def get_followers(request, content_type_id, object_id):
